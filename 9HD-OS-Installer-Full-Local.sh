@@ -1,6 +1,7 @@
-######################
-# INITIAL ARCH SETUP #
-######################
+#!/usr/bin/env bash
+#################################
+###  BEGIN INITIAL ARCH SETUP ###
+#################################
 # ASCII ART #
 clear
 echo "                                :-            %     %            -                                "
@@ -50,7 +51,7 @@ echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |
 read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue..." user_input
 if [[ "$user_input" == "YES" ]]; then
     echo "--- BEGIN INSTALLATION SCRIPT ---"
-    # Proceed logic
+    # PROCEED LOGIC
 else
     echo "--- INSTALLATION PROCESS ABORTED ---"
     exit 1
