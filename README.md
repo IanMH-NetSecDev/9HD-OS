@@ -1,2 +1,2 @@
 # 9HD-OS
-A more secure Linux endpoint. Made for ansible.
+A novel approach to endpoint security. Made for ansible, made with Arch and KVM.
