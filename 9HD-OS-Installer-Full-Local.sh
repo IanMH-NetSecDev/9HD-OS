@@ -43,17 +43,15 @@ echo "                                               @+ +@                      
 echo "                                               @. .@                                              "
 echo "                                                +%=                                               "
 echo "  __        _______ _     ____ ___  __  __ _____ @ _____ ___     ___  _   _ ____     ___  ____    "
-echo "  \ \      / / ____| |   / ___/ _ \|  \/  | ____| |_   _/ _ \   / _ \| | | |  _ \   / _ \/ ___|   "
+echo "  \ \      / / ____| |   / ___/ _ \|  \/  | ____|'|_   _/ _ \   / _ \| | | |  _ \   / _ \/ ___|   "
 echo "   \ \ /\ / /|  _| | |  | |  | | | | |\/| |  _|     | || | | | | (_) | |_| | | | | | | | \___ \   "
 echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _  | |_| | | |_| |___) |  "
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
 # USER PROMPT #
-read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue..." user_input
-if [[ "$user_input" == "YES" ]]; then
-    echo "--- BEGIN INSTALLATION SCRIPT ---"
-    # PROCEED LOGIC
-else
+read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " user_input
+if [[ "$user_input" != "YES" ]]; then
     echo "--- INSTALLATION PROCESS ABORTED ---"
     exit 1
 fi
+echo "--- BEGIN INSTALLATION SCRIPT ---"
 pause
