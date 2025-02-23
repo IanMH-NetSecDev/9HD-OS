@@ -4,6 +4,7 @@
 #################################
 # ASCII ART #
 clear
+echo "                                                                                                  "
 echo "                                :-            %     %            -                                "
 echo "                              -@%%@*  ::    = @:    @::    :: :#@*@#:                             "
 echo "                           #@@@@@@@@*=      =+@@=+-@@*+      =#@@@@@@@@+                          "
@@ -48,10 +49,12 @@ echo "   \ \ /\ / /|  _| | |  | |  | | | | |\/| |  _|     | || | | | | (_) | |_|
 echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _  | |_| | | |_| |___) |  "
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
 # USER PROMPT #
-read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " user_input
+echo "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... "
+read user_input
 if [[ "$user_input" != "YES" ]]; then
+    clear
     echo "--- INSTALLATION PROCESS ABORTED ---"
-    exit 1
+    exit
+else 
+    echo "--- PROCEEDING WITH INSTALLATION PROCESS ---"
 fi
-echo "--- BEGIN INSTALLATION SCRIPT ---"
-pause
