@@ -12,7 +12,7 @@ user-prompt (){
 user-prompt-responder (){
 if [[ "$1" != "YES" ]]; then
     clear
-    echo -e "---\e[1;31m 9HD-OS INSTALLATION ABORTED\e[0m ---"
+    echo -e "===\e[1;31m 9HD-OS INSTALLATION ABORTED\e[0m ==="
 else 
     start-install-process
 fi
@@ -22,7 +22,7 @@ fi
 
 start-install-process (){
     clear
-    echo -e "---\e[1;36m PROCEEDING WITH 9HD-OS INSTALLATION\e[0m ---"
+    echo -e "===\e[1;36m PROCEEDING WITH 9HD-OS INSTALLATION\e[0m ==="
 }
 
 # ASCII ART
