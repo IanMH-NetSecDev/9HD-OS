@@ -5,7 +5,7 @@
 # USER PROMPT
 
 user-prompt (){
-    read -r -t 120 -p " INPUT: " Input < /dev/tty
+    read -r -t 120 -p " RESPONSE: " Input < /dev/tty
     user-prompt-responder "$Input"
 }
 
@@ -77,7 +77,7 @@ echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _ 
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
 echo " "
 echo -e "\e[1;31m ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? THIS WILL CAUSE LARGE CHANGES TO YOUR SYSTEM." 
-echo -e " INTERNET CONNECTION REQUIRED. \e[0mType YES to contiue, or anything else to abort... "
+echo -e " AN INTERNET CONNECTION IS REQUIRED. Type YES to contiue, or anything else to abort...\e[0m "
 }
 
 ### INITIAL CLS EXECUTIONS
