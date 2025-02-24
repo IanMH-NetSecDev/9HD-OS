@@ -1,13 +1,10 @@
 #!/usr/bin/env bash
 
-################################
-### DECLARATION OF FUNCTIONS ###
-################################
+### DECLARATION OF FUNCTIONS
 
-# USER PROMPT #
+# USER PROMPT
 user-prompt (){
-echo "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... "
-read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " user_input
+read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue..." user_input
 if [[ "$user_input" != "YES" ]]; then
     clear
     echo "--- INSTALLATION PROCESS ABORTED ---"
@@ -17,17 +14,15 @@ else
 fi
 }
 
-# START OF INSTALL PROCESS #
+# START OF INSTALL PROCESS
 start-install-process (){
     clear
     echo "--- PROCEEDING WITH INSTALLATION PROCESS ---"
 }
 
-##############################
-### INITIAL CLS EXECUTIONS ###
-##############################
+### INITIAL CLS EXECUTIONS
 
-# ASCII ART #
+# ASCII ART
 clear
 echo "                                                                                                  "
 echo "                                :-            %     %            -                                "
