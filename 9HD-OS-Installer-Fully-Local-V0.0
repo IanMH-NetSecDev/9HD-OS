@@ -5,8 +5,8 @@
 # USER PROMPT
 
 user-prompt (){
-read -r -t 120 -p 'ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... ' UserInput
-user-prompt-responder $UserInput
+read -r -t 120 -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " Input
+user-prompt-responder $Input
 }
 
 user-prompt-responder (){
@@ -28,6 +28,7 @@ start-install-process (){
 ### INITIAL CLS EXECUTIONS
 
 # ASCII ART
+bash
 clear
 echo -e "\e[0;31m"
 echo "                                :-            %     %            -                                "
