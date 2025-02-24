@@ -1,7 +1,32 @@
 #!/usr/bin/env bash
-#################################
-###  BEGIN INITIAL ARCH SETUP ###
-#################################
+
+################################
+### DECLARATION OF FUNCTIONS ###
+################################
+
+# USER PROMPT #
+user-prompt (){
+echo "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... "
+read -n 3 -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " user_input
+if [[ "$user_input" != "YES" ]]; then
+    clear
+    echo "--- INSTALLATION PROCESS ABORTED ---"
+    exit
+else 
+    start-install-process
+fi
+}
+
+# START OF INSTALL PROCESS #
+start-install-process (){
+    clear
+    echo "--- PROCEEDING WITH INSTALLATION PROCESS ---"
+}
+
+##############################
+### INITIAL CLS EXECUTIONS ###
+##############################
+
 # ASCII ART #
 clear
 echo "                                                                                                  "
@@ -48,13 +73,5 @@ echo "  \ \      / / ____| |   / ___/ _ \|  \/  | ____|'|_   _/ _ \   / _ \| | |
 echo "   \ \ /\ / /|  _| | |  | |  | | | | |\/| |  _|     | || | | | | (_) | |_| | | | | | | | \___ \   "
 echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _  | |_| | | |_| |___) |  "
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
-# USER PROMPT #
-echo "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... "
-read user_input
-if [[ "$user_input" != "YES" ]]; then
-    clear
-    echo "--- INSTALLATION PROCESS ABORTED ---"
-    exit
-else 
-    echo "--- PROCEEDING WITH INSTALLATION PROCESS ---"
-fi
+echo "                                                                                                  "
+user-prompt 
