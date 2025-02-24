@@ -5,7 +5,7 @@
 # USER PROMPT
 
 user-prompt (){
-    read -r -t 120 -p "  Type YES to contiue... " Input < /dev/tty
+    read -r -t 120 -p "INTERNET CONNECTION REQUIRED. Type YES to contiue, or anything else to abort...\e[0m " Input < /dev/tty
     user-prompt-responder "$Input"
 }
 
@@ -76,7 +76,7 @@ echo "   \ \ /\ / /|  _| | |  | |  | | | | |\/| |  _|     | || | | | | (_) | |_|
 echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _  | |_| | | |_| |___) |  "
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
 echo " "
-echo -e "\e[1;31m  ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? THIS WILL CAUSE LARGE CHANGES TO YOUR SYSTEM.\e[0m " 
+echo -e "\e[1;31m ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? THIS WILL CAUSE LARGE CHANGES TO YOUR SYSTEM." 
 }
 
 ### INITIAL CLS EXECUTIONS
