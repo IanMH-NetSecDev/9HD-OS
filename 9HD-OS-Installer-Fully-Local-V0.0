@@ -1,19 +1,20 @@
-#!/bin/bash
+#!/bin/bash -i
 
 ### DECLARATION OF FUNCTIONS
 
 # USER PROMPT
 
 user-prompt (){
-read -r -e -t 120 -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " $Input
-user-prompt-responder "$Input"
+    read -r -e -t 120 -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " Input
+    user-prompt-responder "$Input"
 }
 
 user-prompt-responder (){
 if [[ "$1" != "YES" ]]; then
-    clear
+    #clear
     echo "--- INSTALLATION PROCESS ABORTED ---"
     echo "$1"
+    echo "$Input"
 else 
     start-install-process
 fi
@@ -21,7 +22,7 @@ fi
 
 # START OF INSTALL PROCESS
 start-install-process (){
-    clear
+    #clear
     echo "--- PROCEEDING WITH INSTALLATION PROCESS ---"
 }
 
