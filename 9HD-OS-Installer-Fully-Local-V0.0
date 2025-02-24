@@ -5,6 +5,7 @@
 # USER PROMPT
 user-prompt (){
 read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " user_input
+sleep 5
 if [[ "$user_input" != "YES" ]]; then
     clear
     echo "--- INSTALLATION PROCESS ABORTED ---"
