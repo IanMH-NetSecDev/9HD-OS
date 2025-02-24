@@ -1,11 +1,11 @@
-#!/bin/bash -i
+#!/bin/bash
 
 ### DECLARATION OF FUNCTIONS
 
 # USER PROMPT
 
 user-prompt (){
-    read -r -e -t 120 -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " Input
+    read -r -t 120 -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " Input <&1
     user-prompt-responder "$Input"
 }
 
