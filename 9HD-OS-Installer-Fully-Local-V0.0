@@ -5,7 +5,7 @@
 # USER PROMPT
 
 user-prompt (){
-read -t 120 -p 'ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... ' UserInput
+read -r -t 120 -p 'ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... ' UserInput
 user-prompt-responder $UserInput
 }
 
@@ -13,6 +13,7 @@ user-prompt-responder (){
 if [[ "$1" != "YES" ]]; then
     clear
     echo "--- INSTALLATION PROCESS ABORTED ---"
+    echo "$1"
 else 
     start-install-process
 fi
