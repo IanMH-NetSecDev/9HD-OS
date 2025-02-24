@@ -13,8 +13,6 @@ user-prompt-responder (){
 if [[ "$1" != "YES" ]]; then
     clear
     echo "--- INSTALLATION PROCESS ABORTED ---"
-    echo "$1"
-    echo "$Input"
 else 
     start-install-process
 fi
