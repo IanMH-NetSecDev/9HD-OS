@@ -3,10 +3,14 @@
 ### DECLARATION OF FUNCTIONS
 
 # USER PROMPT
+
 user-prompt (){
-read -p "ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... " user_input
-sleep 5
-if [[ "$user_input" != "YES" ]]; then
+read -p "Input: " UserInput
+user-prompt-responder $UserInput
+}
+
+user-prompt-responder (){
+if [[ "$1" != "YES" ]]; then
     clear
     echo "--- INSTALLATION PROCESS ABORTED ---"
     exit
@@ -25,7 +29,7 @@ start-install-process (){
 
 # ASCII ART
 clear
-echo -e "\e[0;31m                                                                                                  "
+echo -e "\e[0;31m"
 echo "                                :-            %     %            -                                "
 echo "                              -@%%@*  ::    = @:    @::    :: :#@*@#:                             "
 echo "                           #@@@@@@@@*=      =+@@=+-@@*+      =#@@@@@@@@+                          "
@@ -64,11 +68,12 @@ echo "                                                #@#                       
 echo "                                               @+ +@                                              "
 echo "                                               @. .@                                              "
 echo "                                                +%=                                               "
-echo "  __        _______ _     ____ ___  __  __ _____ @ _____ ___     ___  _   _ ____     ___  ____    "
-echo "  \ \      / / ____| |   / ___/ _ \|  \/  | ____|'|_   _/ _ \   / _ \| | | |  _ \   / _ \/ ___|   "
+echo "                                                 @                                                "
+echo "                                                 '                                                "
+echo "  __        _______ _     ____ ___  __  __ _____   _____ ___     ___  _   _ ____     ___  ____    "
+echo "  \ \      / / ____| |   / ___/ _ \|  \/  | ____| |_   _/ _ \   / _ \| | | |  _ \   / _ \/ ___|   "
 echo "   \ \ /\ / /|  _| | |  | |  | | | | |\/| |  _|     | || | | | | (_) | |_| | | | | | | | \___ \   "
 echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _  | |_| | | |_| |___) |  "
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
-echo -e "\e[0m                                                                                                  "
-sleep 5
-user-prompt 
+echo -e "\e[0mARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? Type YES to contiue... "
+user-prompt
