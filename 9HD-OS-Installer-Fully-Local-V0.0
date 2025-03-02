@@ -51,10 +51,11 @@ start-install (){
 # prompts user if they want to proceed if not in EFI mode, proceeds to "select-install-disk" if in EFI mode or if user responds with "YES".
 check-efi-mode (){
     if [ -d /sys/firmware/efi ]; then
+        echo "System is booted in UEFI mode. Proceeding..."
+        select-install-disk
+    else
         echo -e "\e[1;31mWARNING: YOUR MACHINE IS NOT BOOTED IN EFI MODE. THIS MAY RESULT IN THE SYSTEM FUNCTIONING INCORRECTLY. DO YOU WISH TO PROCEED?\e[0m"
         user-prompt "up-helper-yes" "select-install-disk" "abort-install"
-    else
-        echo "System is booted in UEFI mode. Proceeding..."
     fi
 }
 
