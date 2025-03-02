@@ -20,7 +20,6 @@ up-helper-yes(){
 
 # ABORTS INSTALL AND EXITS SCRIPT
 abort-install (){
-    clear
     echo -e "===\e[1;31m 9HD-OS INSTALLATION ABORTED\e[0m ==="
     exit
 }
@@ -33,7 +32,8 @@ initial-user-prompt (){
     initial-user-prompt-responder "$Input"
 }
 initial-user-prompt-responder (){
-if [[ "$1" != "YES" ]]; then #abort
+if [[ "$1" != "YES" ]]; then #clear and abort
+    clear
     abort-install
 else #start install
     start-install
