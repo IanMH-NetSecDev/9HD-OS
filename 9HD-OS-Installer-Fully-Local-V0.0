@@ -61,7 +61,7 @@ check-efi-mode (){
 # WIP
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
 select-install-disk (){
-    echo "This section not yet implimented. Exiting..."
+    echo "This section not yet implemented. Exiting..."
     abort-install
 }
 
