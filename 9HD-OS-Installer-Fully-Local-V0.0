@@ -20,6 +20,7 @@ up-helper-yes(){
 
 # ABORTS INSTALL AND EXITS SCRIPT
 abort-install (){
+    clear
     echo -e "===\e[1;31m 9HD-OS INSTALLATION ABORTED\e[0m ==="
     exit
 }
@@ -33,7 +34,6 @@ initial-user-prompt (){
 }
 initial-user-prompt-responder (){
 if [[ "$1" != "YES" ]]; then #abort
-    clear
     abort-install
 else #start install
     start-install
@@ -61,7 +61,8 @@ check-efi-mode (){
 # WIP
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
 select-install-disk (){
-
+    echo "This section not yet implimented. Exiting..."
+    abort-install
 }
 
 # ASCII ART
