@@ -5,7 +5,7 @@
 # INITRIAL USER PROMPT & HELPER FUNCTION
 initial-user-prompt (){
     read -r -t 120 -p " RESPONSE: " Input < /dev/tty
-    user-prompt-responder "$Input"
+    initial-user-prompt-responder "$Input"
 }
 initial-user-prompt-responder (){
 if [[ "$1" != "YES" ]]; then #abort
