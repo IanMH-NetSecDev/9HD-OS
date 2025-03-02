@@ -1,6 +1,30 @@
 #!/bin/bash -i
 
-### DECLARATION OF FUNCTIONS
+### GENERIC FUNCTIONS, TO BE USED OFTEN ###
+
+# FLEXIBLE TUI USER PROMPT
+# accepts one input from terminal after the word "RESPONSE: " and executes the helper function or command passed to it in code (does not accept "" or '')
+# syntax for using this is as so: user-prompt "<helper function to call>" "<command on proc>" "<command on fail>"
+user-prompt(){
+    read -r -t 120 -p "RESPONSE: " Input < /dev/tty
+    eval "$1" "$Input" "$2" "$3"
+}
+# helper function for above that executes $2 on "YES" input and $3 on anything else
+up-helper-yes(){
+    if [[ "$1" = "YES" ]]; then #execute $2
+        eval "$2"
+    else #execute $3
+        eval "$3"
+    fi
+}
+
+# ABORTS INSTALL AND EXITS SCRIPT
+abort-install (){
+    echo -e "===\e[1;31m 9HD-OS INSTALLATION ABORTED\e[0m ==="
+    exit
+}
+
+### HIGHLY SPECIFIC FUNCTIONS, TO BE USED ONE-FEW TIMES ###
 
 # INITRIAL USER PROMPT & HELPER FUNCTION
 initial-user-prompt (){
@@ -10,23 +34,34 @@ initial-user-prompt (){
 initial-user-prompt-responder (){
 if [[ "$1" != "YES" ]]; then #abort
     clear
-    echo -e "===\e[1;31m 9HD-OS INSTALLATION ABORTED\e[0m ==="
+    abort-install
 else #start install
-    start-install-process
+    start-install
 fi
 }
 
-# START OF INSTALL PROCESS
-start-install-process (){
+# STARTS INSTALL PROCESS, PROCEEDS TO "check-efi-mode"
+start-install (){
     clear
     echo -e "===\e[1;36m PROCEEDING WITH 9HD-OS INSTALLATION\e[0m ==="
-    check-uefi-mode
+    check-efi-mode
 }
 
 # CHECKS THAT THE MACHINE IS BOOTED IN EFI MODE
-check-uefi-mode (){
-    EfiVarOutput=$(efivar -l) 2> /dev/null
-    echo EfiVarOutput
+# prompts user if they want to proceed if not in EFI mode, proceeds to "select-install-disk" if in EFI mode or if user responds with "YES".
+check-efi-mode (){
+    if [ -d /sys/firmware/efi ]; then
+        echo -e "\e[1;31mWARNING: YOUR MACHINE IS NOT BOOTED IN EFI MODE. THIS MAY RESULT IN THE SYSTEM FUNCTIONING INCORRECTLY. DO YOU WISH TO PROCEED?\e[0m"
+        user-prompt "up-helper-yes" "select-install-disk" "abort-install"
+    else
+        echo "System is booted in UEFI mode. Proceeding..."
+    fi
+}
+
+# WIP
+# PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
+select-install-disk (){
+
 }
 
 # ASCII ART
