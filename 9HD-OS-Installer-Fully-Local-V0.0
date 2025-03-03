@@ -62,8 +62,9 @@ check-efi-mode (){
 # WIP
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
 select-install-disk (){
+    clear
     echo -e "\e[1;36mSelect the disk you wish to install on from the list below."
-    echo -e "\e[1;31mWARNING: The selected disk will be reformated. Any data on it will be permanently deleted."
+    echo -e "\e[1;31mWARNING: The selected disk will be reformated. Any data on it will be permanently deleted. \e[0m "
     echo ""
     lsblk -i -o "NAME,TYPE,SIZE,MOUNTPOINTS,UUID" -x "NAME" -Q "type == 'disk' || type == 'part'" --highlight "type == 'disk'"
     echo ""
