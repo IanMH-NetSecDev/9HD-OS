@@ -63,12 +63,16 @@ check-efi-mode (){
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
 select-install-disk (){
     clear
-    echo -e "\e[1;36mSELECT THIS DISK YOU WISH TO INSTALL 9HEADED-DRAGON-OS ON FROM THE LIST BELOW."
-    echo -e "\e[1;31mWARNING: THE SELECTED DISK WILL BE FORMATTED. ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
+    echo "=================="
+    echo "+ \e[1;36mDISK SELECTION \e[0m+"
+    echo "=================="
+    echo ""
+    echo -e "\e[1;36mSELECT THE DISK YOU WISH TO USE TO BOOT 9HD-OS ON FROM THE LIST BELOW."
+    echo -e "\e[1;31mTHE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
     echo ""
     lsblk -i -o "NAME,SIZE,TYPE,MAJ:MIN,MOUNTPOINTS,UUID" -x "NAME" -Q "type == 'disk' || type == 'part'" --highlight "type == 'disk'"
     echo ""
-    read -r -p "DISK: " Input < /dev/tty
+    read -r -p "DISK: " DiskToFormat < /dev/tty
     echo "This section not yet fully implemented. Exiting..."
     abort-install
 }
