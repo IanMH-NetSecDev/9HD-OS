@@ -64,9 +64,9 @@ check-efi-mode (){
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
 select-install-disk (){
     clear
-    echo " █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
-    echo -e " █\e[1;36m            DISK SELECTION            \e[0m█"
-    echo " █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+    echo -e "█\e[1;36m                        DISK SELECTION                        \e[0m█"
+    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
     echo -e "\e[1;36mSELECT A DISK FROM THE LIST BELOW TO CREATE A BOOT DRIVE FOR 9HD-OS."
     echo -e "\e[1;31mTHE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
     echo ""
