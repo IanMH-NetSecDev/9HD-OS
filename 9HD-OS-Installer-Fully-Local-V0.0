@@ -64,16 +64,15 @@ check-efi-mode (){
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
 select-install-disk (){
     clear
-    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
-    echo -e "█\e[1;36m    DISK SELECTION    \e[0m█"
-    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
-    echo ""
+    echo " █▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+    echo -e " █\e[1;36m            DISK SELECTION            \e[0m█"
+    echo " █▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
     echo -e "\e[1;36mSELECT A DISK FROM THE LIST BELOW TO CREATE A BOOT DRIVE FOR 9HD-OS."
     echo -e "\e[1;31mTHE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
     echo ""
-    lsblk -i -o "NAME,SIZE,TYPE,MAJ:MIN,MOUNTPOINTS,UUID" -x "NAME" -Q "type == 'disk' || type == 'part'" --highlight "type == 'disk'"
+    lsblk -i -o "NAME,SIZE,TYPE,MODEL" -x "NAME" -Q "type == 'disk' || type == 'part'" --highlight "type == 'disk'"
     echo ""
-    read -r -p "DISK: " DiskToFormat < /dev/tty
+    read -r -p "DISK SELECTION: " DiskToFormat < /dev/tty
     echo "This section not yet fully implemented. Exiting..."
     abort-install
 }
