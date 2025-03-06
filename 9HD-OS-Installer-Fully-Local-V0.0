@@ -54,7 +54,8 @@ check-efi-mode (){
         echo "System is booted in UEFI mode. Proceeding..."
         select-install-disk
     else
-        echo -e "\e[1;31mWARNING: YOUR MACHINE IS NOT BOOTED IN EFI MODE. THIS MAY RESULT IN THE SYSTEM FUNCTIONING INCORRECTLY. DO YOU WISH TO PROCEED?\e[0m"
+        echo -e "\e[1;31mWARNING: YOUR MACHINE IS NOT BOOTED IN EFI MODE. THIS MAY RESULT IN THE SYSTEM FUNCTIONING INCORRECTLY. IT IS HIGHLY RECOMMENDED"
+        echo -e "TO ABORT AND REBOOT IN UEFI MODE IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
         user-prompt "up-helper-yes" "select-install-disk" "abort-install"
     fi
 }
