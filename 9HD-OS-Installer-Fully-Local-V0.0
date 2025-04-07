@@ -60,8 +60,7 @@ check-efi-mode (){
     fi
 }
 
-# WIP
-# PROMPTS USER TO SELECT A DISK FOR INSTALLATION 
+# PROMPTS USER TO SELECT A DISK FOR INSTALLATION
 select-install-disk (){
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
@@ -73,10 +72,32 @@ select-install-disk (){
     echo ""
     lsblk -i -o "NAME,SIZE,TYPE,MODEL" -x "NAME" -Q "type == 'disk' || type == 'part'" --highlight "type == 'disk'"
     echo ""
-    read -r -p "DISK SELECTION: " DiskToFormat < /dev/tty
-    echo "This section not yet fully implemented. Exiting..."
-    abort-install
+    read -r -p "DISK NAME: " DiskToFormat < /dev/tty
+    select-FDE "$DiskToFormat"
 }
+
+# PROMPTS USER TO USE OR TO NOT USE LUKS FDE
+select-FDE (){
+    clear
+    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+    echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
+    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+    echo ""
+    echo -e "\e[1;36mDO YOU WANT TO USE LUKS1 SHA512 FULL DISK ENCRYPTION? (YES or NO) \e[0m "
+    echo -e "\e[1;31mWARNING: ONLY FDE ENABLED VERSION CURRENTLY IMPLEMENMTED \e[0m "
+    echo ""
+    read -r -p "RESPONSE: " UseCryptoResponse < /dev/tty
+    if [[ "$UseCryptoResponse" == "YES" ]]; then #proceed to crypto enabled partitioner
+        start-crypto-partitioner "$1"
+    elif [[ "$UseCryptoResponse" == "NO" ]]; then
+        start-noncrypto-partitioner "$1"
+    else
+        select-FDE "$1"
+    fi
+}
+
+# CREATES PARTITIONS FOR FDE ENABLED INSTALL
+
 
 # ASCII ART
 startup-ascii (){
