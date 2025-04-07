@@ -88,7 +88,7 @@ select-FDE (){
         echo -e "\e[1;31mWARNING: THE RESPONSE YOU ENTERED IS NOT A VALID DISK NAME. PRESS ANY KEY TO RESTART DISK SELECTION. \e[0m"
         read -n 1 -s
         select-install-disk
-    elif [ -e "$DiskPath" ]; then
+    elif lsblk -o NAME,TYPE | grep -E "^$(basename $DISK)\s+disk$" &>/dev/null; then
         echo "DISK EXISTS. PROCEEDING..."
     else
         echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
