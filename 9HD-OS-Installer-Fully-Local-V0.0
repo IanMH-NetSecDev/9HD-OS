@@ -32,12 +32,12 @@ initial-user-prompt (){
     initial-user-prompt-responder "$Input"
 }
 initial-user-prompt-responder (){
-if [[ "$1" != "YES" ]]; then #clear and abort
-    clear
-    abort-install
-else #start install
-    start-install
-fi
+    if [[ "$1" != "YES" ]]; then #clear and abort
+        clear
+        abort-install
+    else #start install
+        start-install
+    fi
 }
 
 # STARTS INSTALL PROCESS, PROCEEDS TO "check-efi-mode"
@@ -78,9 +78,23 @@ select-install-disk (){
 
 # TESTS IF DISK EXISTS, THEN PROMPTS USER TO USE OR TO NOT USE LUKS FDE
 select-FDE (){
-    if [ -e "$1" ]; then
+    clear
+    DiskPath="/dev/$1"
+    if DiskPath -gt 4; then
+        echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+        echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
+        echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+        echo ""
+        echo -e "\e[1;31mWARNING: THE RESPONSE YOU ENTERED IS NOT A VALID DISK NAME. PRESS ANY KEY TO RESTART DISK SELECTION. \e[0m"
+        read -n 1 -s
+        select-install-disk
+    elif [ -e "$DiskPath" ]; then
         echo "DISK EXISTS. PROCEEDING..."
     else
+        echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+        echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
+        echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+        echo ""
         echo -e "\e[1;31mWARNING: THE RESPONSE YOU ENTERED IS NOT A VALID DISK NAME. PRESS ANY KEY TO RESTART DISK SELECTION. \e[0m"
         read -n 1 -s
         select-install-disk
@@ -108,15 +122,23 @@ select-FDE (){
 
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
 crypto-partitioner (){
-clear
-echo -e "\e[1;36mYOU HAVE SELECTED TO USE LUKS1 SHA512 FDE AND TO USE DISK: $1 AS YOUR PRIMARY DRIVE. DO YOU WISH TO CONTINUE? (YES or NO)"
-echo -e "\e[1;31m WARNING: THE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
-read -r -p "RESPONSE: " StartPartitioner < /dev/tty
-if [[ "$StartPartitioner" == "NO" ]]; then
-    select-install-disk
-elif [[ "$StartPartitioner" == "YES" ]]; then 
-    echo "Beginning installation..."
-
+    clear
+    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+    echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
+    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+    echo ""
+    echo "SELECTED DISK: $1"
+    echo ""
+    echo -e "\e[1;36mYOU HAVE SELECTED TO USE LUKS1 SHA512 FDE AND TO USE THE LISTED DISK AS YOUR PRIMARY DRIVE. DO YOU WISH TO CONTINUE? (YES or NO)"
+    echo -e "\e[1;31mWARNING: THE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
+    echo ""
+    read -r -p "RESPONSE: " StartPartitioner < /dev/tty
+    if [[ "$StartPartitioner" == "NO" ]]; then
+        select-install-disk
+    elif [[ "$StartPartitioner" == "YES" ]]; then 
+        clear
+        echo "Beginning installation..."
+    fi
 }
 
 # ASCII ART
