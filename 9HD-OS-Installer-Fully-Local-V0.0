@@ -80,7 +80,7 @@ select-install-disk (){
 select-FDE (){
     clear
     DiskPath="/dev/$1"
-    if DiskPath -gt 4; then
+    if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then
         echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
         echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
         echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
@@ -133,11 +133,14 @@ crypto-partitioner (){
     echo -e "\e[1;31mWARNING: THE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
     echo ""
     read -r -p "RESPONSE: " StartPartitioner < /dev/tty
-    if [[ "$StartPartitioner" == "NO" ]]; then
+    if [[ "$StartPartitioner" == "NO" ]]; then #return to disk selector
         select-install-disk
-    elif [[ "$StartPartitioner" == "YES" ]]; then 
+    elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
         clear
         echo "Beginning installation..."
+        abort-install
+    else
+        crypto-partitioner $1
     fi
 }
 
@@ -154,6 +157,15 @@ non-crypto-partitioner (){
     echo -e "\e[1;31mWARNING: THE FOLLOWING SECTION HAS NOT BEEN IMPLEMENTED. SCRIPT ABORTS ON RESPONSE. \e[0m "
     echo ""
     read -r -p "RESPONSE: " StartPartitioner < /dev/tty
+    if [[ "$StartPartitioner" == "NO" ]]; then #return to disk selector
+        select-install-disk
+    elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
+        clear
+        echo "Beginning installation..."
+        abort-install
+    else
+        non-crypto-partitioner $1
+    fi
 }
 
 # ASCII ART
