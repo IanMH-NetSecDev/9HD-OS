@@ -88,7 +88,7 @@ select-FDE (){
         echo "SELECTED DISK: $1"
         echo ""
         echo -e "\e[1;31mWARNING: THE RESPONSE YOU ENTERED IS NOT A VALID DISK NAME. PRESS ANY KEY TO RESTART DISK SELECTION. \e[0m"
-        read -n 1 -s
+        read -n 1 -s < /dev/tty
         select-install-disk
     elif lsblk -o NAME,TYPE | grep -E "^$(basename $DiskPath)\s+disk$" &>/dev/null; then #checks if the disk exists and is not a partition. proceeds if so
         echo "DISK EXISTS. PROCEEDING..."
@@ -100,7 +100,7 @@ select-FDE (){
         echo "SELECTED DISK: $1"
         echo ""
         echo -e "\e[1;31mWARNING: THE RESPONSE YOU ENTERED IS NOT A VALID DISK NAME. PRESS ANY KEY TO RESTART DISK SELECTION. \e[0m"
-        read -n 1 -s
+        read -n 1 -s < /dev/tty
         select-install-disk
     fi
     clear
