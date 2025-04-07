@@ -80,20 +80,24 @@ select-install-disk (){
 select-FDE (){
     clear
     DiskPath="/dev/$1"
-    if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then
+    if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then #tests for wildcards to prevent directory transversal. returns to disk select if present (probs not needed, leaving for security)
         echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
         echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
         echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
         echo ""
+        echo "SELECTED DISK: $1"
+        echo ""
         echo -e "\e[1;31mWARNING: THE RESPONSE YOU ENTERED IS NOT A VALID DISK NAME. PRESS ANY KEY TO RESTART DISK SELECTION. \e[0m"
         read -n 1 -s
         select-install-disk
-    elif lsblk -o NAME,TYPE | grep -E "^$(basename $DISK)\s+disk$" &>/dev/null; then
+    elif lsblk -o NAME,TYPE | grep -E "^$(basename $DiskPath)\s+disk$" &>/dev/null; then #checks if the disk exists and is not a partition. proceeds if so
         echo "DISK EXISTS. PROCEEDING..."
-    else
+    else #returns to select-install-disk if fails disk test
         echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
         echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
         echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+        echo ""
+        echo "SELECTED DISK: $1"
         echo ""
         echo -e "\e[1;31mWARNING: THE RESPONSE YOU ENTERED IS NOT A VALID DISK NAME. PRESS ANY KEY TO RESTART DISK SELECTION. \e[0m"
         read -n 1 -s
@@ -107,8 +111,7 @@ select-FDE (){
     echo "SELECTED DISK: $1"
     echo ""
     echo -e "\e[1;36mDO YOU WANT TO USE LUKS1 SHA512 FULL DISK ENCRYPTION? (YES or NO) \e[0m "
-    echo -e "\e[1;31mFULL DISK ENCRYPTION IS HIGHLY RECOMMENDED. \e[0m "
-    echo -e "\e[1;31mWARNING: ONLY FDE ENABLED VERSION CURRENTLY IMPLEMENMTED \e[0m "
+    echo -e "\e[1;31mNOTE: FULL DISK ENCRYPTION IS HIGHLY RECOMMENDED. \e[0m "
     echo ""
     read -r -p "RESPONSE: " UseCryptoResponse < /dev/tty
     if [[ "$UseCryptoResponse" == "YES" ]]; then #proceed to crypto enabled partitioner
@@ -129,7 +132,7 @@ crypto-partitioner (){
     echo ""
     echo "SELECTED DISK: $1"
     echo ""
-    echo -e "\e[1;36mYOU HAVE SELECTED TO USE LUKS1 SHA512 FDE AND TO USE THE LISTED DISK AS YOUR PRIMARY DRIVE. DO YOU WISH TO CONTINUE? (YES or NO)"
+    echo -e "\e[1;36mYOU HAVE SELECTED TO USE LUKS1 SHA512 FDE. DO YOU WISH TO CONTINUE? (YES or NO)"
     echo -e "\e[1;31mWARNING: THE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
     echo ""
     read -r -p "RESPONSE: " StartPartitioner < /dev/tty
@@ -137,13 +140,14 @@ crypto-partitioner (){
         select-install-disk
     elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
         clear
-        echo "Beginning installation..."
+        echo "Beginning installation..." # PUT CRYPTO PARTITIONING CODE HERE
         abort-install
     else
         crypto-partitioner $1
     fi
 }
 
+# CREATES PARTITIONS FOR FDE DISABLED INSTALL
 non-crypto-partitioner (){
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
@@ -154,14 +158,13 @@ non-crypto-partitioner (){
     echo ""
     echo -e "\e[1;36mYOU HAVE SELECTED TO NOT USE FDE, AND TO USE THE LISTED DISK AS YOUR PRIMARY DRIVE. DO YOU WISH TO CONTINUE? (YES or NO)"
     echo -e "\e[1;31mWARNING: THE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
-    echo -e "\e[1;31mWARNING: THE FOLLOWING SECTION HAS NOT BEEN IMPLEMENTED. SCRIPT ABORTS ON RESPONSE. \e[0m "
     echo ""
     read -r -p "RESPONSE: " StartPartitioner < /dev/tty
     if [[ "$StartPartitioner" == "NO" ]]; then #return to disk selector
         select-install-disk
     elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
         clear
-        echo "Beginning installation..."
+        echo "Beginning installation..." # PUT NON-CRYPTO PARTITIONING CODE HERE
         abort-install
     else
         non-crypto-partitioner $1
