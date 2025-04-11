@@ -141,6 +141,27 @@ crypto-partitioner (){
     elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
         clear
         echo "Beginning installation..." # PUT CRYPTO PARTITIONING CODE HERE
+        timedatectl set-ntp true
+        CryptName="CryptContainer"
+        DiskPath="/dev/$1"
+        DiskSize=$(blockdev --getsize64 "$DiskPath")
+        SectorSize=512
+        SectorsPerKB=2
+        BiosSizeKB=1024         # 1 MiB
+        EfiSizeKB=563200        # 550 MiB
+        TotalSectors=$((DiskSize * SectorsPerKB))
+        BiosStart=2048
+        BiosEnd=$((BiosStart + BiosSizeKB * SectorsPerKB - 1))
+        EfiStart=$((BiosEnd + 1))
+        EfiEnd=$((EfiStart + EfiSizeKB * SectorsPerKB - 1))
+        LuksStart=$((EfiEnd + 1))
+        LuksEnd=$((TotalSectors - 1))
+        sgdisk --zap-all $DiskPath #wipe out part table
+        sgdisk -n 1:${BiosStart}:${BiosEnd} -t 1:ef02 -c 1:"BIOS boot partition" "$DiskPath" #create BIOS boot part for compatibility
+        sgdisk -n 2:${EfiStart}:${EfiEnd} -t 2:ef00 -c 2:"EFI System" "$DiskPath" #create EFI part
+        sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8300 -c 3:"Linux LUKS" "$DiskPath" #create LUKS part
+        cryptsetup luksFormat --type luks1 "$1$CryptName" #create LUKS container
+        sgdisk -p "$DiskPath" #debug line that shows all partitions
         abort-install
     else
         crypto-partitioner $1
