@@ -145,10 +145,11 @@ crypto-partitioner (){
         CryptName="CryptContainer"
         DiskPath="/dev/$1"
         DiskSize=$(blockdev --getsize64 "$DiskPath")
+        DiskSizeKB=$((DiskSize / 1024))
         SectorSize=512
         SectorsPerKB=2
-        BiosSizeKB=1024         # 1 MiB
-        EfiSizeKB=563200        # 550 MiB
+        BiosSizeKB=1024 #1 MiB
+        EfiSizeKB=563200 #550 MiB
         TotalSectors=$((DiskSize * SectorsPerKB))
         BiosStart=2048
         BiosEnd=$((BiosStart + BiosSizeKB * SectorsPerKB - 1))
