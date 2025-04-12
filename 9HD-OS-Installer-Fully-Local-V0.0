@@ -156,17 +156,19 @@ crypto-partitioner (){
         LuksStart=$((EfiEnd + 1))
         LuksEnd=$(sgdisk -E "DiskPath")
         if [[ "$1" == nvme* ]]; then
-            EfiPartPath="/dev/${1}p1"
+            BiosPartPath="/dev/${1}p1"
+            EfiPartPath="/dev/${1}p2"
             LuksPartPath="/dev/${1}p3"
         else
-            EfiPartPath="/dev/${1}1"
+            BiosPartPath="/dev/${1}1"
+            EfiPartPath="/dev/${1}2"
             LuksPartPath="/dev/${1}3"
         fi
         wipefs --all --force "$DiskPath" #wipe all partitions
         sgdisk --zap-all "$DiskPath" #wipe out part table
-        dd if=/dev/zero of="$DiskPath" bs=1M count=10 status=progress 
-        dd if=/dev/zero of="$DiskPath" bs=1M count=10 seek=$(( $(blockdev --getsize64 "$DiskPath") / 1024 / 1024 - 10 )) status=progress
-        for MountPointToErase in /mnt/*; do
+        dd if=/dev/zero of="$DiskPath" bs=1M count=10 status=progress #erase first 10mb
+        dd if=/dev/zero of="$DiskPath" bs=1M count=10 seek=$(( $(blockdev --getsize64 "$DiskPath") / 1024 / 1024 - 10 )) status=progress #erase last 10mb
+        for MountPointToErase in /mnt/*; do #unmount everything under /mnt/
             if mountpoint -q "$MountPointToErase"; then
                 echo "Unmounting $MountPointToErase..."
                 umount "$MountPointToErase"
