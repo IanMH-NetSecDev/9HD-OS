@@ -177,8 +177,8 @@ crypto-partitioner (){
         sgdisk -n 1:${BiosStart}:${BiosEnd} -t 1:EF02 -c 1:"BIOS boot partition" "${DiskPath}" #create BIOS boot part for compatibility
         sgdisk -n 2:${EfiStart}:${EfiEnd} -t 2:EF00 -c 2:"EFI System" "${DiskPath}" #create EFI part
         sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8309 -c 3:"Linux LUKS" "${DiskPath}" #create LUKS part
-        cryptsetup luksFormat --type luks1 --use-random -S 1 -s ${SectorSize} -h sha512 -i 5000 ${LuksPartPath} #create LUKS container
-        cryptsetup open ${LuksPartPath} cryptlvm 
+        cryptsetup luksFormat --type luks1 --use-random -S 1 -s ${SectorSize} -h sha512 -i 5000 "${LuksPartPath}" #create LUKS container
+        cryptsetup open "${LuksPartPath}" cryptlvm 
         pvcreate /dev/mapper/cryptlvm
         vgcreate vg /dev/mapper/cryptlvm
         lvcreate -L 8G vg -n swap 
