@@ -154,7 +154,7 @@ crypto-partitioner (){
         EfiStart=$((BiosEnd + 1))
         EfiEnd=$((EfiStart + EfiSizeKB * SectorsPerKB - 1))
         LuksStart=$((EfiEnd + 1))
-        LuksEnd=$(sgdisk -E "$DiskPath")
+        LuksEnd=$(sgdisk -E "DiskPath")
         if [[ "$1" == nvme* ]]; then
             EfiPartPath="/dev/${1}p1"
             LuksPartPath="/dev/${1}p3"
@@ -162,12 +162,15 @@ crypto-partitioner (){
             EfiPartPath="/dev/${1}1"
             LuksPartPath="/dev/${1}3"
         fi
-        sgdisk --zap-all $DiskPath #wipe out part table
-        sgdisk -n 1:${BiosStart}:${BiosEnd} -t 1:EF02 -c 1:"BIOS boot partition" "$DiskPath" #create BIOS boot part for compatibility
-        sgdisk -n 2:${EfiStart}:${EfiEnd} -t 2:EF00 -c 2:"EFI System" "$DiskPath" #create EFI part
-        sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8309 -c 3:"Linux LUKS" "$DiskPath" #create LUKS part
-        cryptsetup luksFormat --type luks1 --use-random -S 1 -s ${SectorSize} -h sha512 -i 5000 $DiskPath #create LUKS container
-        cryptsetup open $LuksPartPath CryptoLVM 
+        sgdisk --zap-all "$DiskPath" #wipe out part table
+        wipefs --all --force "$DiskPath" #wipe all partitions
+        dd if=/dev/zero of="$DiskPath" bs=1M count=10 status=progress 
+        dd if=/dev/zero of="$DiskPath" bs=1M count=10 seek=$(( $(blockdev --getsize64 "$DiskPath") / 1024 / 1024 - 10 )) status=progress
+        sgdisk -n 1:${BiosStart}:${BiosEnd} -t 1:EF02 -c 1:"BIOS boot partition" "${DiskPath}" #create BIOS boot part for compatibility
+        sgdisk -n 2:${EfiStart}:${EfiEnd} -t 2:EF00 -c 2:"EFI System" "${DiskPath}" #create EFI part
+        sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8309 -c 3:"Linux LUKS" "${DiskPath}" #create LUKS part
+        cryptsetup luksFormat --type luks1 --use-random -S 1 -s ${SectorSize} -h sha512 -i 5000 ${LuksPartPath} #create LUKS container
+        cryptsetup open ${LuksPartPath} CryptoLVM 
         pvcreate /dev/mapper/CryptoLVM
         vgcreate vg /dev/mapper/CryptoLVM
         lvcreate -L 8G vg -n swap 
