@@ -170,10 +170,7 @@ crypto-partitioner (){
                 umount "$MountPointToErase"
             fi
         done
-        swapon --show --noheadings --output=NAME | grep '^/' | while read -r SwapFileToRemove; do #remove existing SWAP files
-            swapoff "$SwapFileToRemove"
-            echo "Disabled: $SwapFileToRemove"
-        done
+        swapoff -a #disable all existing swap files
         wipefs --all --force "$DiskPath" #wipe all partitions
         sgdisk --zap-all "$DiskPath" #wipe out part table
         dd if=/dev/zero of="$DiskPath" bs=1M count=10 status=progress #erase first 10mb
@@ -187,9 +184,9 @@ crypto-partitioner (){
         echo "Scanning for physical volumes on $DiskPath..."
         pvcreate /dev/mapper/cryptlvm
         vgcreate vg /dev/mapper/cryptlvm
-        lvcreate -L 4G vg -n swap #make these different sizes
-        lvcreate -L 8G vg -n root #make these different sizes
-        lvcreate -l 100%FREE vg -n home #make these different sizes
+        lvcreate -L 4G vg -n swap 
+        lvcreate -L 8G vg -n root 
+        lvcreate -l 100%FREE vg -n home 
         mkfs.ext4 /dev/vg/root #format home root as ext4
         mkfs.ext4 /dev/vg/home #format home dir as ext4
         mkswap /dev/vg/swap #make swap file
