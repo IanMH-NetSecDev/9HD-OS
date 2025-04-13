@@ -111,7 +111,7 @@ select-FDE (){
     echo "SELECTED DISK: $1"
     echo ""
     echo -e "\e[1;36mDO YOU WANT TO USE LUKS1 SHA512 FULL DISK ENCRYPTION? (YES or NO) \e[0m "
-    echo -e "\e[1;31mNOTE: FULL DISK ENCRYPTION IS HIGHLY RECOMMENDED. \e[0m "
+    echo "NOTE: FULL DISK ENCRYPTION IS HIGHLY RECOMMENDED."
     echo ""
     read -r -p "RESPONSE: " UseCryptoResponse < /dev/tty
     if [[ "$UseCryptoResponse" == "YES" ]]; then #proceed to crypto enabled partitioner
@@ -179,14 +179,15 @@ crypto-partitioner (){
         sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8309 -c 3:"Linux LUKS" "${DiskPath}" #create LUKS part
         cryptsetup luksFormat --type luks1 --use-random -S 1 -s ${SectorSize} -h sha512 -i 5000 "${LuksPartPath}" #create LUKS container
         cryptsetup open "${LuksPartPath}" cryptlvm 
+        echo "Scanning for physical volumes on $DiskPath..."
         pvcreate /dev/mapper/cryptlvm
         vgcreate vg /dev/mapper/cryptlvm
-        lvcreate -L 8G vg -n swap 
-        lvcreate -L 32G vg -n root
-        lvcreate -l 100%FREE vg -n home
+        lvcreate -L 4G vg -n swap #make these different sizes
+        lvcreate -L 8G vg -n root #make these different sizes
+        lvcreate -l 100%FREE vg -n home #make these different sizes
         mkfs.ext4 /dev/vg/root #format home root as ext4
         mkfs.ext4 /dev/vg/home #format home dir as ext4
-        mkswap /dev/vg/swap #makeswap file
+        mkswap /dev/vg/swap #make swap file
         mount /dev/vg/root /mnt #mount root dir
         mkdir /mnt/home #make home dir mount point
         mount /dev/vg/home /mnt/home #mount home dir
@@ -274,7 +275,7 @@ echo "  \ \      / / ____| |   / ___/ _ \|  \/  | ____| |_   _/ _ \   / _ \| | |
 echo "   \ \ /\ / /|  _| | |  | |  | | | | |\/| |  _|     | || | | | | (_) | |_| | | | | | | | \___ \   "
 echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _  | |_| | | |_| |___) |  "
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
-echo " "
+echo ""
 echo -e "\e[1;31m ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? THIS WILL CAUSE LARGE CHANGES TO YOUR SYSTEM." 
 echo -e " AN INTERNET CONNECTION IS REQUIRED. Type YES to contiue, or anything else to abort...\e[0m "
 }
