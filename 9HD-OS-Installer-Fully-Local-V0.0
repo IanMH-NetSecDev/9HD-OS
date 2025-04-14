@@ -205,15 +205,15 @@ crypto-partitioner (){
         done
         partprobe "$DiskPath" #refresh part table
         swapoff -a #disable all existing swap files
-        ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do 
-            VolGroupName=$(pvs --noheadings -o vg_name "/dev/mapper/${MappedDevI}" 2>/dev/null | awk '{print $1}') #find any physical volumes
-            if [[ -n "$VolGroupName" ]]; then #close them
-                echo "Deactivating volume group $VolGroupName"
-                vgchange -an "$VolGroupName"
+        ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do #find any LUKS containers
+            VolGroupName=$(pvs --noheadings -o vg_name "/dev/mapper/${MappedDevI}" 2>/dev/null | awk '{print $1}') #find any physical volumes in the mapped device
+            if [[ -n "$VolGroupName" ]]; then 
+                echo "Volume group found named $VolGroupName - deactivating..."
+                vgchange -an "$VolGroupName" #close them
             fi
             fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null #kill all processes using the LUKS container
             umount -lf "/dev/mapper/${MappedDevI}" 2>/dev/null #force unmount the LUKS container, in case its mounted
-            cryptsetup close "${MappedDevI}"
+            cryptsetup close "${MappedDevI}" #close the LUKS container
         done 
         wipefs --all --force "$DiskPath" #wipe all partitions
         sgdisk --zap-all "$DiskPath" #wipe out part table
