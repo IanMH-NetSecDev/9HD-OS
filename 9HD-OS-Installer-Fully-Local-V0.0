@@ -139,12 +139,16 @@ crypto-partitioner (){
     if [[ "$StartPartitioner" == "NO" ]]; then #return to disk selector
         select-install-disk
     elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
+        clear
         echo ""
         echo -e "\e[1;36mSELECT A PASSKEY FOR YOUR ENCRYPTED CONTAINER. \e[0m "
         echo ""
-        read -r -p "RESPONSE: " CryptPassKey < /dev/tty #clear this ASAP
-        clear
-        echo "Beginning installation..." # PUT CRYPTO PARTITIONING CODE HERE
+        read -r -p "ENTER PASSKEY: " CryptPassKey < /dev/tty #clear this ASAP
+        read -r -p "ENTER PASSKEY: " CryptPassKey2 < /dev/tty #clear this ASAP
+        if [[ "$CryptPassKey" != "$CryptPassKey2" ]]; then 
+
+        fi
+        echo "Beginning installation..."
         timedatectl set-ntp true
         DiskPath="/dev/$1"
         DiskSize=$(blockdev --getsize64 "$DiskPath")
@@ -174,6 +178,12 @@ crypto-partitioner (){
                 umount "$MountPointToErase"
             fi
         done
+        for MountPointToErase in /mnt*; do #unmount all root mnt points (/mnt, /mnt2, etc)
+            if mountpoint -q "$MountPointToErase"; then
+                echo "Unmounting $MountPointToErase..."
+                umount "$MountPointToErase"
+            fi
+        done
         swapoff -a #disable all existing swap files
         ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do cryptsetup close "$MappedDevI"; done #close all mapped devices (prevents LUKS container conflict)
         wipefs --all --force "$DiskPath" #wipe all partitions
@@ -186,6 +196,18 @@ crypto-partitioner (){
         sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8309 -c 3:"Linux LUKS" "${DiskPath}" #create LUKS part
         echo -n "$CryptPassKey" | cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode --key-file=- #create LUKS container
         echo -n "$CryptPassKey" | cryptsetup open "${LuksPartPath}" cryptlvm --key-file=- #open the LUKS container
+        for MountPointToErase in /mnt/*; do #unmount everything under /mnt/
+            if mountpoint -q "$MountPointToErase"; then
+                echo "Unmounting ${MountPointToErase}..."
+                umount "$MountPointToErase"
+            fi
+        done
+        for MountPointToErase in /mnt*; do #unmount all root mnt points (/mnt, /mnt2, etc)
+            if mountpoint -q "$MountPointToErase"; then
+                echo "Unmounting ${MountPointToErase}..."
+                umount "$MountPointToErase"
+            fi
+        done
         pvcreate /dev/mapper/cryptlvm
         vgcreate vg /dev/mapper/cryptlvm
         lvcreate -L 4G vg -n swap 
@@ -194,7 +216,7 @@ crypto-partitioner (){
         mkfs.ext4 /dev/vg/root #format home root as ext4
         mkfs.ext4 /dev/vg/home #format home dir as ext4
         mkswap /dev/vg/swap #make swap file
-        mount /dev/vg/root /mnt #mount root dir
+        mount /dev/vg/root /mnt/ #mount root dir
         mkdir /mnt/home #make home dir mount point
         mount /dev/vg/home /mnt/home #mount home dir
         swapon /dev/vg/swap #enable SWAP
