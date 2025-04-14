@@ -115,12 +115,35 @@ select-FDE (){
     echo ""
     read -r -p "RESPONSE: " UseCryptoResponse < /dev/tty
     if [[ "$UseCryptoResponse" == "YES" ]]; then #proceed to crypto enabled partitioner
-        crypto-partitioner "$1"
+        crypto-passkey-capture "$1"
     elif [[ "$UseCryptoResponse" == "NO" ]]; then #proceed to crypto disabled partitioner
         non-crypto-partitioner "$1"
     else #return to select-FDE
         select-FDE "$1"
     fi
+}
+
+# PROMPTS THE USER TO CREATE A PASSKEY FOR FDE ENABLED INSTALL
+crypto-passkey-capture (){
+    clear
+    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+    echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
+    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+    echo ""
+    echo "SELECTED DISK: $1"
+    echo ""
+    echo -e "\e[1;36mSELECT A PASSKEY FOR YOUR ENCRYPTED CONTAINER. \e[0m "
+    echo ""
+    read -rs -p "ENTER PASSKEY: " CryptPassKey < /dev/tty #clear this ASAP
+    read -rs -p "RENTER PASSKEY: " CryptPassKey2 < /dev/tty #clear this ASAP
+    if [[ "$CryptPassKey" == "$CryptPassKey2" ]]; then 
+        echo "Passwords match. Proceeding..."
+        unset CryptPassKey2 #clear CryptPassKey2 for security
+        crypto-partitioner "$1"
+    else
+        echo -e "\e[1;31mWARNING: PASSKEYS DO NOT MATCH. PRESS ANY KEY TO RESTART PASSKEY SELECTION. \e[0m"
+        read -n 1 -s < /dev/tty
+    fi 
 }
 
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
@@ -140,14 +163,6 @@ crypto-partitioner (){
         select-install-disk
     elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
         clear
-        echo ""
-        echo -e "\e[1;36mSELECT A PASSKEY FOR YOUR ENCRYPTED CONTAINER. \e[0m "
-        echo ""
-        read -r -p "ENTER PASSKEY: " CryptPassKey < /dev/tty #clear this ASAP
-        read -r -p "ENTER PASSKEY: " CryptPassKey2 < /dev/tty #clear this ASAP
-        if [[ "$CryptPassKey" != "$CryptPassKey2" ]]; then 
-
-        fi
         echo "Beginning installation..."
         timedatectl set-ntp true
         DiskPath="/dev/$1"
@@ -184,6 +199,7 @@ crypto-partitioner (){
                 umount "$MountPointToErase"
             fi
         done
+        partprobe "$DiskPath" #refresh part table
         swapoff -a #disable all existing swap files
         ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do cryptsetup close "$MappedDevI"; done #close all mapped devices (prevents LUKS container conflict)
         wipefs --all --force "$DiskPath" #wipe all partitions
@@ -194,8 +210,10 @@ crypto-partitioner (){
         sgdisk -n 1:${BiosStart}:${BiosEnd} -t 1:EF02 -c 1:"BIOS boot partition" "${DiskPath}" #create BIOS boot part for compatibility
         sgdisk -n 2:${EfiStart}:${EfiEnd} -t 2:EF00 -c 2:"EFI System" "${DiskPath}" #create EFI part
         sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8309 -c 3:"Linux LUKS" "${DiskPath}" #create LUKS part
+        partprobe "$DiskPath" #refresh part table
         echo -n "$CryptPassKey" | cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode --key-file=- #create LUKS container
         echo -n "$CryptPassKey" | cryptsetup open "${LuksPartPath}" cryptlvm --key-file=- #open the LUKS container
+        unset CryptPassKey #clear CryptPassKey for security
         for MountPointToErase in /mnt/*; do #unmount everything under /mnt/
             if mountpoint -q "$MountPointToErase"; then
                 echo "Unmounting ${MountPointToErase}..."
@@ -208,11 +226,13 @@ crypto-partitioner (){
                 umount "$MountPointToErase"
             fi
         done
+        partprobe "$DiskPath" #refresh part table
         pvcreate /dev/mapper/cryptlvm
         vgcreate vg /dev/mapper/cryptlvm
         lvcreate -L 4G vg -n swap 
         lvcreate -L 8G vg -n root 
         lvcreate -l 100%FREE vg -n home 
+        partprobe "$DiskPath" #refresh part table
         mkfs.ext4 /dev/vg/root #format home root as ext4
         mkfs.ext4 /dev/vg/home #format home dir as ext4
         mkswap /dev/vg/swap #make swap file
