@@ -206,9 +206,9 @@ crypto-partitioner (){
         partprobe "$DiskPath" #refresh part table
         swapoff -a #disable all existing swap files
         ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do 
-            VolGroupName=$(pvs --noheadings -o vg_name "/dev/mapper/${MappedDevI}" 2>/dev/null | awk '{print $1}')
-            if [[ -n "$VolGroupName" ]]; then
-                 echo "Deactivating volume group $VolGroupName"
+            VolGroupName=$(pvs --noheadings -o vg_name "/dev/mapper/${MappedDevI}" 2>/dev/null | awk '{print $1}') #find any physical volumes
+            if [[ -n "$VolGroupName" ]]; then #close them
+                echo "Deactivating volume group $VolGroupName"
                 vgchange -an "$VolGroupName"
             fi
             fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null
