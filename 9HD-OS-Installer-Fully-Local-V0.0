@@ -143,7 +143,8 @@ crypto-passkey-capture (){
         unset CryptPassKey2 #clear CryptPassKey2 for security
         crypto-partitioner "$1"
     else
-        echo -e "\e[1;31mWARNING: PASSKEYS DO NOT MATCH. PRESS ANY KEY TO RESTART PASSKEY SELECTION. \e[0m"
+        echo ""
+        echo -e "\e[1;31mWARNING: PASSKEYS DO NOT MATCH OR ARE EMPTY. PRESS ANY KEY TO RESTART PASSKEY SELECTION. \e[0m"
         read -n 1 -s < /dev/tty
         crypto-passkey-capture "$1"
     fi 
@@ -205,6 +206,11 @@ crypto-partitioner (){
         partprobe "$DiskPath" #refresh part table
         swapoff -a #disable all existing swap files
         ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do 
+            VolGroupName=$(pvs --noheadings -o vg_name "/dev/mapper/${MappedDevI}" 2>/dev/null | awk '{print $1}')
+            if [[ -n "$VolGroupName" ]]; then
+                 echo "Deactivating volume group $VolGroupName"
+                vgchange -an "$VolGroupName"
+            fi
             fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null
             umount -lf "/dev/mapper/${MappedDevI}" 2>/dev/null
             cryptsetup close "${MappedDevI}"
