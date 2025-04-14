@@ -206,7 +206,7 @@ crypto-partitioner (){
         swapoff -a #disable all existing swap files
         ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do 
             fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null
-            umount -lf "/dev/mapper/$MappedDevI" 2>/dev/null
+            umount -lf "/dev/mapper/${MappedDevI}" 2>/dev/null
             cryptsetup close "${MappedDevI}"
         done 
         wipefs --all --force "$DiskPath" #wipe all partitions
