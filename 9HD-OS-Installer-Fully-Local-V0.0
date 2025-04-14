@@ -211,8 +211,8 @@ crypto-partitioner (){
                 echo "Deactivating volume group $VolGroupName"
                 vgchange -an "$VolGroupName"
             fi
-            fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null
-            umount -lf "/dev/mapper/${MappedDevI}" 2>/dev/null
+            fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null #kill all processes using the LUKS container
+            umount -lf "/dev/mapper/${MappedDevI}" 2>/dev/null #force unmount the LUKS container, in case its mounted
             cryptsetup close "${MappedDevI}"
         done 
         wipefs --all --force "$DiskPath" #wipe all partitions
