@@ -138,7 +138,7 @@ crypto-passkey-capture (){
     echo ""
     read -rs -p "RENTER PASSKEY: " CryptPassKey2 < /dev/tty #clear this ASAP
     echo ""
-    if [[ "$CryptPassKey" == "$CryptPassKey2" ]]; then 
+    if [[ -n "$CryptPassKey" && -n "$CryptPassKey2" && "$CryptPassKey" == "$CryptPassKey2" ]]; then 
         echo "Passwords match. Proceeding..."
         unset CryptPassKey2 #clear CryptPassKey2 for security
         crypto-partitioner "$1"
@@ -206,6 +206,7 @@ crypto-partitioner (){
         swapoff -a #disable all existing swap files
         ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do 
             fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null
+            umount -lf "/dev/mapper/$MappedDevI" 2>/dev/null
             cryptsetup close "${MappedDevI}"
         done 
         wipefs --all --force "$DiskPath" #wipe all partitions
