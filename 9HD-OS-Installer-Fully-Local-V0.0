@@ -135,7 +135,9 @@ crypto-passkey-capture (){
     echo -e "\e[1;36mSELECT A PASSKEY FOR YOUR ENCRYPTED CONTAINER. \e[0m "
     echo ""
     read -rs -p "ENTER PASSKEY: " CryptPassKey < /dev/tty #clear this ASAP
+    echo ""
     read -rs -p "RENTER PASSKEY: " CryptPassKey2 < /dev/tty #clear this ASAP
+    echo ""
     if [[ "$CryptPassKey" == "$CryptPassKey2" ]]; then 
         echo "Passwords match. Proceeding..."
         unset CryptPassKey2 #clear CryptPassKey2 for security
@@ -143,6 +145,7 @@ crypto-passkey-capture (){
     else
         echo -e "\e[1;31mWARNING: PASSKEYS DO NOT MATCH. PRESS ANY KEY TO RESTART PASSKEY SELECTION. \e[0m"
         read -n 1 -s < /dev/tty
+        crypto-passkey-capture "$1"
     fi 
 }
 
@@ -190,18 +193,18 @@ crypto-partitioner (){
         for MountPointToErase in /mnt/*; do #unmount everything under /mnt/
             if mountpoint -q "$MountPointToErase"; then
                 echo "Unmounting $MountPointToErase..."
-                umount "$MountPointToErase"
+                umount -lf "$MountPointToErase"
             fi
         done
         for MountPointToErase in /mnt*; do #unmount all root mnt points (/mnt, /mnt2, etc)
             if mountpoint -q "$MountPointToErase"; then
                 echo "Unmounting $MountPointToErase..."
-                umount "$MountPointToErase"
+                umount -lf "$MountPointToErase"
             fi
         done
         partprobe "$DiskPath" #refresh part table
         swapoff -a #disable all existing swap files
-        ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do cryptsetup close "$MappedDevI"; done #close all mapped devices (prevents LUKS container conflict)
+        ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do cryptsetup close "${MappedDevI}"; done #close all mapped devices (prevents LUKS container conflict)
         wipefs --all --force "$DiskPath" #wipe all partitions
         sgdisk --zap-all "$DiskPath" #wipe out part table
         dd if=/dev/zero of="$DiskPath" bs=1M count=20 status=progress #erase first 20mb of disk (to kill headers)
@@ -214,18 +217,6 @@ crypto-partitioner (){
         echo -n "$CryptPassKey" | cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode --key-file=- #create LUKS container
         echo -n "$CryptPassKey" | cryptsetup open "${LuksPartPath}" cryptlvm --key-file=- #open the LUKS container
         unset CryptPassKey #clear CryptPassKey for security
-        for MountPointToErase in /mnt/*; do #unmount everything under /mnt/
-            if mountpoint -q "$MountPointToErase"; then
-                echo "Unmounting ${MountPointToErase}..."
-                umount "$MountPointToErase"
-            fi
-        done
-        for MountPointToErase in /mnt*; do #unmount all root mnt points (/mnt, /mnt2, etc)
-            if mountpoint -q "$MountPointToErase"; then
-                echo "Unmounting ${MountPointToErase}..."
-                umount "$MountPointToErase"
-            fi
-        done
         partprobe "$DiskPath" #refresh part table
         pvcreate /dev/mapper/cryptlvm
         vgcreate vg /dev/mapper/cryptlvm
@@ -246,7 +237,7 @@ crypto-partitioner (){
         echo "End of section reached. Aborting..."
         abort-install
     else
-        crypto-partitioner $1
+        crypto-partitioner "$1"
     fi
 }
 
