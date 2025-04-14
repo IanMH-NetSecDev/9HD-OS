@@ -173,15 +173,18 @@ crypto-partitioner (){
         swapoff -a #disable all existing swap files
         wipefs --all --force "$DiskPath" #wipe all partitions
         sgdisk --zap-all "$DiskPath" #wipe out part table
-        dd if=/dev/zero of="$DiskPath" bs=1M count=10 status=progress #erase first 10mb
-        dd if=/dev/zero of="$DiskPath" bs=1M count=10 seek=$(( $(blockdev --getsize64 "$DiskPath") / 1024 / 1024 - 10 )) status=progress #erase last 10mb
+        dd if=/dev/zero of="$DiskPath" bs=1M count=20 status=progress #erase first 20mb
+        dd if=/dev/zero of="$DiskPath" bs=1M count=20 seek=$(( $(blockdev --getsize64 "$DiskPath") / 1024 / 1024 - 10 )) status=progress #erase last 20mb
+        partprobe "$DiskPath" #refresh part table
         sgdisk -n 1:${BiosStart}:${BiosEnd} -t 1:EF02 -c 1:"BIOS boot partition" "${DiskPath}" #create BIOS boot part for compatibility
         sgdisk -n 2:${EfiStart}:${EfiEnd} -t 2:EF00 -c 2:"EFI System" "${DiskPath}" #create EFI part
         sgdisk -n 3:${LuksStart}:${LuksEnd} -t 3:8309 -c 3:"Linux LUKS" "${DiskPath}" #create LUKS part
-        dd if=/dev/zero of="$LuksPartPath" bs=1M count=2 oflag=direct status=none #wipe existing LUKS container
+        partprobe "$DiskPath" #refresh part table
+        cryptsetup luksErase "${LuksPartPath}" --batch-mode #erase any existing LUKS parts
+        partprobe "$DiskPath" #refresh part table
         cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode #create LUKS container
         cryptsetup open "${LuksPartPath}" cryptlvm 
-        echo "Scanning for physical volumes on $DiskPath..."
+        partprobe "$DiskPath" #refresh part table
         pvcreate /dev/mapper/cryptlvm
         vgcreate vg /dev/mapper/cryptlvm
         lvcreate -L 4G vg -n swap 
