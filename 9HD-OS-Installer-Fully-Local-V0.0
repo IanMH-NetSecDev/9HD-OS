@@ -204,7 +204,10 @@ crypto-partitioner (){
         done
         partprobe "$DiskPath" #refresh part table
         swapoff -a #disable all existing swap files
-        ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do cryptsetup close "${MappedDevI}"; done #close all mapped devices (prevents LUKS container conflict)
+        ls /dev/mapper | grep -v '^control$' | while read MappedDevI; do 
+            fuser -km "/dev/mapper/${MappedDevI}" 2>/dev/null
+            cryptsetup close "${MappedDevI}"
+        done 
         wipefs --all --force "$DiskPath" #wipe all partitions
         sgdisk --zap-all "$DiskPath" #wipe out part table
         dd if=/dev/zero of="$DiskPath" bs=1M count=20 status=progress #erase first 20mb of disk (to kill headers)
