@@ -1,6 +1,6 @@
-**NOTE: THIS PROJECT IS CURRENTLY A WORK IN PROGRESS - NOT ALL FEATURES MENTIONED ARE CURRENTLY IMPLIMENTED**
-
 # Nine-Headed Dragon OS (9HD-OS)
+
+**NOTE: THIS PROJECT IS CURRENTLY A WORK IN PROGRESS - NOT ALL FEATURES MENTIONED ARE CURRENTLY IMPLIMENTED**
 
 ## SHORT EXPLANATION:  
 A Linux operating system leveraging KVM and Arch to provide an exceptionally secure virtualization-based approach to endpoint security. Provides both a highly secure, FDE enabled Arch install out of the box and a pre-configured internal network of virtualized security devices (firewalls, SIEMs, etc.) and endpoints to serve as segregated working environments. 9HD-OS provides heightened intrusion/vulnerability detection and prevention, as well as the ability to segregate potentially sensitive activities across different high performance-VMs and operating systems. VM performance is substantially improved due to the nature of type-1 hypervisors and the automatic configuration of PCIe pass-through. Performance benefits substantially from having access to multiple GPUs.
