@@ -23,7 +23,8 @@ Third, basing this system on Arch, KVM, and other premade technologies presents 
 
 Finally, it is my intention to release this project as an open-source package once it has reached maturity. It can be installed, forked, modified, etc. by any member of the community, at any time, at absolutely no cost. This will further lend to the secure nature of the system, as members of the community can audit it for security and recommend changes or create patches at any time.  
 
-IanMH-NetSecDev  
+Ian MH,  
+Network Security Dev
 
 ## Special Thanks:
 Kevin Cleary - Mentoring and administration  
