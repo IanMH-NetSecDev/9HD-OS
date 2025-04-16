@@ -6,7 +6,7 @@
 A Linux operating system leveraging KVM and Arch to provide an exceptionally secure virtualization-based approach to endpoint security. Provides both a highly secure, FDE enabled Arch install out of the box and a pre-configured internal network of virtualized security devices (firewalls, SIEMs, etc.) and endpoints to serve as segregated working environments. 9HD-OS provides heightened intrusion/vulnerability detection and prevention, as well as the ability to segregate potentially sensitive activities across different high performance-VMs and operating systems. VM performance is substantially improved due to the nature of type-1 hypervisors and the automatic configuration of PCIe pass-through. Performance benefits substantially from having access to multiple GPUs.
 
 ## HOW TO INSTALL:  
-1. Make an Arch-Linux install disk using the newest version available. [Official arch download page](https://archlinux.org/download/).  
+1. Make an Arch-Linux install disk using the newest version available. https://archlinux.org/download/  
 2. Connect your Arch-Linux install to the internet wirelessly by following [this guide](https://wiki.archlinux.org/title/Network_configuration) or via Ethernet.  
 3. Install wget to your Arch-Linux install environment using the command `pacman -Sy wget`.  
 4. Download and run the install script using the command `wget -O - "https://raw.githubusercontent.com/IanMH-NetSecDev/9HD-OS/refs/heads/main/9HD-OS-Installer-Fully-Local-V#.#" | bash` - make sure you replace `V#.#` with your desired version.  
