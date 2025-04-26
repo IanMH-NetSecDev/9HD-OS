@@ -335,23 +335,23 @@ crypto-partitioner-fail(){
     echo ""
     echo "SELECTED DISK: $1"
     echo ""
-    echo -e "\e[1;31mDRIVE PARTITION SCHEME FAILED INTEGRITY CHECKS. THIS COULD INDICATE AN UNRECOVERABLE ISSUE\e[0m "
-    echo -e "\e[1;31mWITH YOUR 9HD-OS INSTALL. WOULD YOU LIKE TO ABORT, RETRY PARTITIONING, OR FORCE PROCEED?\e[0m "
+    echo -e "\e[1;31mERROR: DRIVE PARTITION SCHEME FAILED INTEGRITY CHECKS. THIS COULD INDICATE AN UNRECOVERABLE\e[0m "
+    echo -e "\e[1;31mISSUE WITH THIS INSTALLER. WOULD YOU LIKE TO ABORT, RETRY DISK SELECTION, OR FORCE PROCEED?\e[0m "
     echo -e "\e[1;31mWARNING: THERE IS NO GUARANTEE YOUR SYSTEM WILL FUNCTION PROPERLY IF YOU FORCE PROCEED.\e[0m "
     echo ""
-    echo "REASON FOR FAILURE: $2"
+    echo -e "\e[1;36mREASON FOR FAILURE:\e[1;31m $2"
     echo ""
     echo -e "\e[1;36mCURRENT PARTITION SCHEME ON DISK IS AS FOLLOWS:\e[0m "
     echo ""
     lsblk ${DiskPath}
     echo ""
-    echo -e "\e[1;36mABORT, RETRY, or FORCE\e[0m "
+    echo -e "\e[1;36mEnter: ABORT, RETRY, or FORCE\e[0m "
     echo ""
     read -r -p "RESPONSE: " RestartPartitioner < /dev/tty
     if [[ "$RestartPartitioner" == "ABORT" ]]; then #abort
         abort-install
     elif [[ "$RestartPartitioner" == "RETRY" ]]; then #return to partitioner
-        crypto-partitioner "$1"
+        crypto-passkey-capture "$1"
     elif [[ "$RestartPartitioner" == "FORCE" ]]; then
         abort-install #FUTURE ADDITION (P1): REPLACE THIS WITH CALL TO PROCEED FUNCTION
     else
