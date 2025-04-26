@@ -307,7 +307,7 @@ check-drive() {
 
     # Check required volume groups exist
     for vg in vg-swap vg-root vg-home; do
-        if ! printf '%s\n' "${EXISTING_VGS[@]}" | grep -xqF "$vg"; then
+        if ! lsblk -o NAME,TYPE | grep -qw "$vg"; then
             echo "Missing volume group: $vg."
             return 1
         fi
