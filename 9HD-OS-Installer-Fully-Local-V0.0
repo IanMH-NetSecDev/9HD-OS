@@ -258,8 +258,7 @@ crypto-partitioner-check-drive() {
     DiskPath="/dev/$1"
     # Check device exists
     if [ ! -b "$DiskPath" ]; then
-        echo "Disk $DiskPath does not exist."
-        return 1
+        crypto-partitioner-fail "$1" "Disk $DiskPath does not exist."
     fi
     # Refresh partition table
     partprobe "$DiskPath"
@@ -269,68 +268,57 @@ crypto-partitioner-check-drive() {
     LuksSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
     # Validate partition 1 (1 MiB)
     if (( $BiosSize != 1 )); then
-        echo "Partition 1 size incorrect (expected ~1024MiB, got ${BiosSize}MiB)."
-        return 1
+        crypto-partitioner-fail "$1" "Partition 1 size incorrect (expected 1MiB, got ${BiosSize}MiB)."
     fi
     # Validate partition 2 (550 MiB)
     if (( $EfiSize != 550 )); then
-        echo "Partition 2 size incorrect (expected ~550MiB, got ${EfiSize}MiB)."
-        return 1
+        crypto-partitioner-fail "$1" "Partition 2 size incorrect (expected 550MiB, got ${EfiSize}MiB)."
     fi
     # Validate partition 3 (>15 GiB)
     if (( $(echo "$LuksSize <= 15" | bc -l) )); then
-        echo "Partition 3 size too small (got ${LuksSize}GiB)."
-        return 1
+        crypto-partitioner-fail "$1" "Partition 3 size too small (got ${LuksSize}GiB)."
     fi
     # Check if EFI partition is mounted correctly
     EfiDev=$(lsblk -no NAME "${DiskPath}2" | head -n1 | sed "s|^|/dev/|")
     EfiMnt=$(findmnt -n -o TARGET "$EfiDev")
     if [ "$EfiMnt" != "/mnt/efi" ]; then
-        echo "Partition 2 not mounted at /mnt/efi (found: $EfiMnt)."
-        return 1
+        crypto-partitioner-fail "$1" "Partition 2 not mounted at /mnt/efi (found: $EfiMnt)."
     fi
     # Check if a LUKS container is open
     LuksMapper=$(lsblk -nr -o TYPE,NAME | awk '$1=="crypt" {print $2}' | head -n1)
     if [ -z "$LuksMapper" ]; then
-        echo "No open LUKS container found."
-        return 1
+        crypto-partitioner-fail "$1" "No open LUKS container found."
     fi
     LuksPath="/dev/mapper/$LuksMapper"
     # Check required volume groups exist
     for vg in vg-swap vg-root vg-home; do
         if ! lsblk -o NAME,TYPE | grep -qw "$vg"; then
-            echo "Missing volume group: $vg."
-            return 1
+            crypto-partitioner-fail "$1" "Missing volume group: $vg."
         fi
     done
     # Validate swap LV size (~4GiB)
     SwapSize=$(lsblk -no SIZE -b /dev/mapper/vg-swap | awk '{print $1/1024/1024/1024}')  # in GiB
     if (( ${SwapSize} != 4 )); then
-        echo "vg-swap size incorrect (expected ~4GiB, got ${SwapSize}GiB)."
-        return 1
+        crypto-partitioner-fail "$1" "vg-swap size incorrect (expected 4GiB, got ${SwapSize}GiB)."
     fi
     # Validate root LV size (~8GiB)
     RootSize=$(lsblk -no SIZE -b /dev/mapper/vg-root | awk '{print $1/1024/1024/1024}')  # in GiB
     if (( ${RootSize} != 8 )); then
-        echo "vg-root size incorrect (expected ~8GiB, got ${RootSize}GiB)."
-        return 1
+        crypto-partitioner-fail "$1" "vg-root size incorrect (expected ~8GiB, got ${RootSize}GiB)."
     fi
     # Validate swap is active
     if ! lsblk -no NAME,TYPE /dev/mapper/vg-swap | grep -qw "swap"; then
-        echo "Swap is not active on vg-swap."
-        return 1
+        crypto-partitioner-fail "$1" "Swap is not active on vg-swap."
     fi
     # Check if vg-root is mounted at /mnt
     RootMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-root" | awk '{print $2}')
     if [ "${RootMnt}" != "/mnt" ]; then
-        echo "vg-root is not mounted at /mnt"
-        return 1
+        crypto-partitioner-fail "$1" "vg-root is not mounted at /mnt"
     fi
     # Check if vg-home is mounted at /mnt/home
     HomeMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-home" | awk '{print $2}')
     if [ "${HomeMnt}" != "/mnt/home" ]; then
-        echo "vg-home not mounted at /mnt/home."
-        return 1
+        crypto-partitioner-fail "$1" "vg-home not mounted at /mnt/home."
     fi
     lsblk
     echo "All checks passed! Disk formatted correctly. Proceeding..."
