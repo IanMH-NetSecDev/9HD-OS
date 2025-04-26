@@ -153,7 +153,7 @@ crypto-passkey-capture (){
 }
 
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
-# FUTURE ADDITION (P3): add checks to ensure drive structure is correct. FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P4): migrate to LUKS2
+# FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P2): allow user to select swap/root/home partition sizes. FUTURE ADDITION (P4): migrate to LUKS2
 crypto-partitioner (){ 
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
@@ -322,7 +322,7 @@ crypto-partitioner-check-drive() {
     fi
     lsblk
     echo "All checks passed! Disk formatted correctly. Proceeding..."
-    abort-install #FUTURE ADDITION (P1): REPLACE THIS WITH CALL TO PROCEED FUNCTION
+    abort-install #FUTURE ADDITION (P1): replace this with call to proceed function
 }
 
 # ALLOWS USER TO RETRY, ABORT, OR FORCE PROCEED IF PARTITIONING CHECKS FAIL
@@ -353,13 +353,14 @@ crypto-partitioner-fail(){
     elif [[ "$RestartPartitioner" == "RETRY" ]]; then #return to partitioner
         crypto-passkey-capture "$1"
     elif [[ "$RestartPartitioner" == "FORCE" ]]; then
-        abort-install #FUTURE ADDITION (P1): REPLACE THIS WITH CALL TO PROCEED FUNCTION
+        abort-install #FUTURE ADDITION (P1): replace this with call to proceed function
     else
         crypto-partitioner-fail "$1" "$2"
     fi
 }
 
 # CREATES PARTITIONS FOR FDE DISABLED INSTALL
+# FUTURE ADDITION (P2): finish this
 non-crypto-partitioner (){
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
