@@ -141,7 +141,7 @@ crypto-passkey-capture (){
     echo ""
     if [[ -n "$CryptPassKey" && -n "$CryptPassKey2" && "$CryptPassKey" == "$CryptPassKey2" ]]; then 
         echo "Passwords match. Proceeding..."
-        CryptPassKey2="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        CryptPassKey2="0000000000000000000000000000000000000"
         unset CryptPassKey2 #clear CryptPassKey2 for security
         crypto-partitioner "$1"
     else
@@ -184,7 +184,6 @@ crypto-partitioner (){
         EfiStart=$((BiosEnd + 1))
         EfiEnd=$((EfiStart + EfiSizeKB * SectorsPerKB - 1))
         LuksStart=$((EfiEnd + 1))
-        LuksEnd=$(sgdisk -E "$DiskPath")
         if [[ "$1" == nvme* ]]; then
             BiosPartPath="/dev/${1}p1"
             EfiPartPath="/dev/${1}p2"
@@ -229,7 +228,7 @@ crypto-partitioner (){
         partprobe "$DiskPath" #refresh part table
         echo -n "$CryptPassKey" | cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode --key-file=- #create LUKS container
         echo -n "$CryptPassKey" | cryptsetup open "${LuksPartPath}" cryptlvm --key-file=- #open the LUKS container
-        CryptPassKey="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
+        CryptPassKey="0000000000000000000000000000000000000"
         unset CryptPassKey #clear CryptPassKey for security
         partprobe "$DiskPath" #refresh part table
         pvcreate /dev/mapper/cryptlvm
@@ -249,46 +248,40 @@ crypto-partitioner (){
         mkdir /mnt/efi
         mount $EfiPartPath /mnt/efi 
         echo "Drive commands complete... Checking for integrity..."
-        check-drive "$1"
+        crypto-partitioner-check-drive "$1"
     else
         crypto-partitioner "$1"
     fi
 }
 
-check-drive() {
+crypto-partitioner-check-drive() {
     DiskPath="/dev/$1"
     # Check device exists
     if [ ! -b "$DiskPath" ]; then
         echo "Disk $DiskPath does not exist."
         return 1
     fi
-
     # Refresh partition table
     partprobe "$DiskPath"
-
     # Extract partition sizes
     BiosSize=$(parted -s "$DiskPath" unit MiB print | awk '/ 1 / {gsub("MiB",""); print int($4)}')
     EfiSize=$(parted -s "$DiskPath" unit MiB print | awk '/ 2 / {gsub("MiB",""); print int($4)}')
     LuksSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
-
     # Validate partition 1 (1 MiB)
     if (( $BiosSize != 1 )); then
         echo "Partition 1 size incorrect (expected ~1024MiB, got ${BiosSize}MiB)."
         return 1
     fi
-
     # Validate partition 2 (550 MiB)
     if (( $EfiSize != 550 )); then
         echo "Partition 2 size incorrect (expected ~550MiB, got ${EfiSize}MiB)."
         return 1
     fi
-
     # Validate partition 3 (>15 GiB)
     if (( $(echo "$LuksSize <= 15" | bc -l) )); then
         echo "Partition 3 size too small (got ${LuksSize}GiB)."
         return 1
     fi
-
     # Check if EFI partition is mounted correctly
     EfiDev=$(lsblk -no NAME "${DiskPath}2" | head -n1 | sed "s|^|/dev/|")
     EfiMnt=$(findmnt -n -o TARGET "$EfiDev")
@@ -296,7 +289,6 @@ check-drive() {
         echo "Partition 2 not mounted at /mnt/efi (found: $EfiMnt)."
         return 1
     fi
-
     # Check if a LUKS container is open
     LuksMapper=$(lsblk -nr -o TYPE,NAME | awk '$1=="crypt" {print $2}' | head -n1)
     if [ -z "$LuksMapper" ]; then
@@ -304,7 +296,6 @@ check-drive() {
         return 1
     fi
     LuksPath="/dev/mapper/$LuksMapper"
-
     # Check required volume groups exist
     for vg in vg-swap vg-root vg-home; do
         if ! lsblk -o NAME,TYPE | grep -qw "$vg"; then
@@ -312,44 +303,73 @@ check-drive() {
             return 1
         fi
     done
-
     # Validate swap LV size (~4GiB)
     SwapSize=$(lsblk -no SIZE -b /dev/mapper/vg-swap | awk '{print $1/1024/1024/1024}')  # in GiB
     if (( ${SwapSize} != 4 )); then
         echo "vg-swap size incorrect (expected ~4GiB, got ${SwapSize}GiB)."
         return 1
     fi
-
     # Validate root LV size (~8GiB)
     RootSize=$(lsblk -no SIZE -b /dev/mapper/vg-root | awk '{print $1/1024/1024/1024}')  # in GiB
     if (( ${RootSize} != 8 )); then
         echo "vg-root size incorrect (expected ~8GiB, got ${RootSize}GiB)."
         return 1
     fi
-
     # Validate swap is active
     if ! lsblk -no NAME,TYPE /dev/mapper/vg-swap | grep -qw "swap"; then
         echo "Swap is not active on vg-swap."
         return 1
     fi
-
     # Check if vg-root is mounted at /mnt
     RootMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-root" | awk '{print $2}')
     if [ "${RootMnt}" != "/mnt" ]; then
         echo "vg-root is not mounted at /mnt"
         return 1
     fi
-
     # Check if vg-home is mounted at /mnt/home
     HomeMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-home" | awk '{print $2}')
     if [ "${HomeMnt}" != "/mnt/home" ]; then
         echo "vg-home not mounted at /mnt/home."
         return 1
     fi
-
-    echo "All checks passed!"
+    lsblk
+    echo "All checks passed! Disk formatted correctly. Proceeding..."
+    abort-install #FUTURE ADDITION (P1): REPLACE THIS WITH CALL TO PROCEED FUNCTION
 }
 
+# ALLOWS USER TO RETRY, ABORT, OR FORCE PROCEED IF PARTITIONING CHECKS FAIL
+crypto-partitioner-fail(){
+    DiskPath="/dev/$1"
+    clear
+    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
+    echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
+    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
+    echo ""
+    echo "SELECTED DISK: $1"
+    echo ""
+    echo -e "\e[1;31mDRIVE PARTITION SCHEME FAILED INTEGRITY CHECKS. THIS COULD INDICATE AN UNRECOVERABLE ISSUE\e[0m "
+    echo -e "\e[1;31mWITH YOUR 9HD-OS INSTALL. WOULD YOU LIKE TO ABORT, RETRY PARTITIONING, OR FORCE PROCEED?\e[0m "
+    echo -e "\e[1;31mWARNING: THERE IS NO GUARANTEE YOUR SYSTEM WILL FUNCTION PROPERLY IF YOU FORCE PROCEED.\e[0m "
+    echo ""
+    echo "REASON FOR FAILURE: $2"
+    echo ""
+    echo -e "\e[1;36mCURRENT PARTITION SCHEME ON DISK IS AS FOLLOWS:\e[0m "
+    echo ""
+    lsblk ${DiskPath}
+    echo ""
+    echo -e "\e[1;36mABORT, RETRY, or FORCE\e[0m "
+    echo ""
+    read -r -p "RESPONSE: " RestartPartitioner < /dev/tty
+    if [[ "$RestartPartitioner" == "ABORT" ]]; then #abort
+        abort-install
+    elif [[ "$RestartPartitioner" == "RETRY" ]]; then #return to partitioner
+        crypto-partitioner "$1"
+    elif [[ "$RestartPartitioner" == "FORCE" ]]; then
+        abort-install #FUTURE ADDITION (P1): REPLACE THIS WITH CALL TO PROCEED FUNCTION
+    else
+        crypto-partitioner-fail "$1" "$2"
+    fi
+}
 
 # CREATES PARTITIONS FOR FDE DISABLED INSTALL
 non-crypto-partitioner (){
