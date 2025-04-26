@@ -272,13 +272,13 @@ check-drive() {
     LuksSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
 
     # Validate partition 1 (1024 MiB ± margin)
-    if (( BiosSize < 1015 || BiosSize > 1035 )); then
+    if (( BiosSize != 1 )); then
         echo "Partition 1 size incorrect (expected ~1024MiB, got ${BiosSize}MiB)."
         return 1
     fi
 
     # Validate partition 2 (550 MiB ± margin)
-    if (( EfiSize < 540 || EfiSize > 560 )); then
+    if (( EfiSize != 550 )); then
         echo "Partition 2 size incorrect (expected ~550MiB, got ${EfiSize}MiB)."
         return 1
     fi
@@ -307,7 +307,7 @@ check-drive() {
 
     # Check required volume groups exist
     for vg in vg-swap vg-root vg-home; do
-        if ! vgs --noheadings -o VG_NAME | grep -qw "$vg"; then
+        if ! vgs --noheadings -o VG_NAME | awk '{$1=$1};1' | grep -xq "$vg"; then
             echo "Missing volume group: $vg."
             return 1
         fi
