@@ -322,7 +322,7 @@ check-drive() {
 
     # Validate root LV size (~8GiB)
     RootSize=$(lsblk -no SIZE -b /dev/mapper/vg-root | awk '{print $1/1024/1024/1024}')  # in GiB
-    if (( ${SwapSize} != 8 )); then
+    if (( ${RootSize} != 8 )); then
         echo "vg-root size incorrect (expected ~8GiB, got ${RootSize}GiB)."
         return 1
     fi
@@ -333,17 +333,17 @@ check-drive() {
         return 1
     fi
 
-    # Check if root is mounted at /mnt
-    RootDev=$(lvs --noheadings -o LV_PATH vg-root | xargs)
-    RootMnt=$(findmnt -n -o TARGET "$RootDev" 2>/dev/null)
+    # Check if vg-root is mounted at /mnt
+    RootDev=$(lsblk -no NAME /dev/mapper | grep "vg-root" | head -n 1)
+    RootMnt=$(findmnt -n -o TARGET "/dev/mapper/$RootDev" 2>/dev/null)
     if [ "$RootMnt" != "/mnt" ]; then
         echo "vg-root not mounted at /mnt."
         return 1
     fi
 
-    # Check if home is mounted at /mnt/home
-    HomeDev=$(lvs --noheadings -o LV_PATH vg-home | xargs)
-    HomeMnt=$(findmnt -n -o TARGET "$HomeDev" 2>/dev/null)
+    # Check if vg-home is mounted at /mnt/home
+    HomeDev=$(lsblk -no NAME /dev/mapper | grep "vg-home" | head -n 1)
+    HomeMnt=$(findmnt -n -o TARGET "/dev/mapper/$HomeDev" 2>/dev/null)
     if [ "$HomeMnt" != "/mnt/home" ]; then
         echo "vg-home not mounted at /mnt/home."
         return 1
