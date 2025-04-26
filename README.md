@@ -7,17 +7,17 @@
 A Linux operating system leveraging KVM and Arch to provide an exceptionally secure virtualization-based approach to endpoint security. Provides both a highly secure, FDE enabled Arch install out of the box and a pre-configured internal network of virtualized security devices (firewalls, SIEMs, etc.) and endpoints to serve as segregated working environments. 9HD-OS provides heightened intrusion/vulnerability detection and prevention, as well as the ability to segregate potentially sensitive activities across different high performance-VMs and operating systems. VM performance and utility is substantially improved due to the nature of type-1 hypervisors and the automatic configuration of PCIe pass-through for GPUs and other devices.
 
 ## System Requirements:
-**Minimum:**  
-<ins>Storage:</ins> 20GB+ for base system, 50GB+ for base system and all default VMs.  
-<ins>Processor:</ins> Intel processor with Intel VT-x and Intel 64 virtualization extensions for x86-based systems or AMD processor with the AMD-V and AMD64 virtualization extensions. 1-2 processor threads per desired VM (depending on guest OS). Note: Additonal processor cores/threads allow for additonal VMs and increased performance.  
-<ins>GPU:</ins> Any newer than 2015, some older GPUs may work. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
-<ins>Motherboard:</ins> Any that supports UEFI. Not all motherbaords support multiple GPUs and PCIe passthrough features.  
+<ins>**Minimum:**</ins>  
+**Storage:** 20GB+ for base system, 50GB+ for base system and all default VMs.  
+**Processor:** Intel processor with Intel VT-x and Intel 64 virtualization extensions for x86-based systems or AMD processor with the AMD-V and AMD64 virtualization extensions. 1-2 processor threads per desired VM (depending on guest OS). Note: Additonal processor cores/threads allow for additonal VMs and increased performance.  
+**GPU:** Any newer than 2015, some older GPUs may work. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
+**Motherboard:** Any that supports UEFI. Not all motherbaords support multiple GPUs and PCIe passthrough features.  
 
-**Recommended:**  
-<ins>Storage:</ins> 2TB+ total usable storage, RAID1 or RAID1+0.  
-<ins>Processor:</ins> Any Intel or AMD processor with 16+ threads capable of 3GHz+, must support minimum virtualization features. Note: Additonal processor cores/threads allow for additonal VMs and increased performance.  
-<ins>GPU:</ins> Integrated GPU or GTX750+ for hypervisor. RTX2060+ for high performance VMs. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
-<ins>Motherboard:</ins> Any UEFI capable motherboard newer than 2015 that supports multiple GPUs.  
+<ins>**Recommended:**</ins>  
+**Storage:** 2TB+ total usable storage, RAID1 or RAID1+0.  
+**Processor:** Any Intel or AMD processor with 16+ threads capable of 3GHz+, must support minimum virtualization features. Note: Additonal processor cores/threads allow for additonal VMs and increased performance.  
+**GPU:** Integrated GPU or GTX750+ for hypervisor. RTX2060+ for high performance VMs. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
+**Motherboard:** Any UEFI capable motherboard newer than 2015 that supports multiple GPUs.  
 
 ## Install Guide:
 1. Make an Arch-Linux install disk using the newest version available. https://archlinux.org/download/  
