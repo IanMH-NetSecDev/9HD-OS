@@ -255,59 +255,103 @@ crypto-partitioner (){
 
 check-drive() {
     DiskPath="/dev/$1"
-    # Check partitions
-    parted -s "$DiskPath" print > /tmp/partinfo.txt
-    grep -qE " 1 .* 1024MiB" /tmp/partinfo.txt || { echo "Partition 1 size incorrect."; return; }
-    grep -qE " 2 .* 550MiB" /tmp/partinfo.txt || { echo "Partition 2 size incorrect."; return; }
-    LuksPartSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
-    if (( $(echo "$LuksPartSize <= 15" | bc -l) )); then
-        echo "Partition 3 size too small."
-        return
+
+    # Check device exists
+    if [ ! -b "$DiskPath" ]; then
+        echo "Disk $DiskPath does not exist."
+        return 1
     fi
-    # Check EFI mount
+
+    # Refresh partition table
+    partprobe "$DiskPath"
+    sleep 1
+
+    # Extract partition sizes
+    BiosSize=$(parted -s "$DiskPath" unit MiB print | awk '/ 1 / {gsub("MiB",""); print int($4)}')
+    EfiSize=$(parted -s "$DiskPath" unit MiB print | awk '/ 2 / {gsub("MiB",""); print int($4)}')
+    LuksSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
+
+    # Validate partition 1 (1024 MiB ± margin)
+    if (( BiosSize < 1015 || BiosSize > 1035 )); then
+        echo "Partition 1 size incorrect (expected ~1024MiB, got ${BiosSize}MiB)."
+        return 1
+    fi
+
+    # Validate partition 2 (550 MiB ± margin)
+    if (( EfiSize < 540 || EfiSize > 560 )); then
+        echo "Partition 2 size incorrect (expected ~550MiB, got ${EfiSize}MiB)."
+        return 1
+    fi
+
+    # Validate partition 3 (>15 GiB)
+    if (( $(echo "$LuksSize <= 15" | bc -l) )); then
+        echo "Partition 3 size too small (got ${LuksSize}GiB)."
+        return 1
+    fi
+
+    # Check if EFI partition is mounted correctly
     EfiDev=$(lsblk -no NAME "${DiskPath}2" | head -n1 | sed "s|^|/dev/|")
     EfiMnt=$(findmnt -n -o TARGET "$EfiDev")
     if [ "$EfiMnt" != "/mnt/efi" ]; then
-        echo "Partition 2 not mounted at /mnt/efi."
-        return
+        echo "Partition 2 not mounted at /mnt/efi (found: $EfiMnt)."
+        return 1
     fi
-    # Find open LUKS device
-    LuksMapper=$(lsblk -no TYPE,NAME | awk '$1=="crypt" {print $2}')
+
+    # Check if a LUKS container is open
+    LuksMapper=$(lsblk -nr -o TYPE,NAME | awk '$1=="crypt" {print $2}' | head -n1)
     if [ -z "$LuksMapper" ]; then
         echo "No open LUKS container found."
-        return
+        return 1
     fi
     LuksPath="/dev/mapper/$LuksMapper"
-    # Check LVM setup
-    vgs | grep -qw "vg-swap" || { echo "Missing vg-swap."; return; }
-    vgs | grep -qw "vg-root" || { echo "Missing vg-root."; return; }
-    vgs | grep -qw "vg-home" || { echo "Missing vg-home."; return; }
+
+    # Check required volume groups exist
+    for vg in vg-swap vg-root vg-home; do
+        if ! vgs --noheadings -o VG_NAME | grep -qw "$vg"; then
+            echo "Missing volume group: $vg."
+            return 1
+        fi
+    done
+
+    # Validate swap LV size (~4GiB)
     SwapSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-swap | xargs)
-    RootSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-root | xargs)
     if (( $(echo "$SwapSize < 3.5" | bc -l) )) || (( $(echo "$SwapSize > 4.5" | bc -l) )); then
-        echo "vg-swap size incorrect."
-        return
+        echo "vg-swap size incorrect (expected ~4GiB, got ${SwapSize}GiB)."
+        return 1
     fi
+
+    # Validate root LV size (~8GiB)
+    RootSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-root | xargs)
     if (( $(echo "$RootSize < 7.5" | bc -l) )) || (( $(echo "$RootSize > 8.5" | bc -l) )); then
-        echo "vg-root size incorrect."
-        return
+        echo "vg-root size incorrect (expected ~8GiB, got ${RootSize}GiB)."
+        return 1
     fi
-    # Check swap active
-    swapon --show=NAME | grep -q "/dev/mapper/vg--swap-" || { echo "Swap not active."; return; }
-    # Check mounts
-    RootMnt=$(findmnt -n -o TARGET /dev/mapper/vg--root-* 2>/dev/null)
-    HomeMnt=$(findmnt -n -o TARGET /dev/mapper/vg--home-* 2>/dev/null)
+
+    # Validate swap is active
+    if ! swapon --show=NAME | grep -q "/dev/mapper/vg--swap-"; then
+        echo "Swap is not active on vg-swap."
+        return 1
+    fi
+
+    # Check if root is mounted at /mnt
+    RootDev=$(lvs --noheadings -o LV_PATH vg-root | xargs)
+    RootMnt=$(findmnt -n -o TARGET "$RootDev" 2>/dev/null)
     if [ "$RootMnt" != "/mnt" ]; then
         echo "vg-root not mounted at /mnt."
-        return
+        return 1
     fi
+
+    # Check if home is mounted at /mnt/home
+    HomeDev=$(lvs --noheadings -o LV_PATH vg-home | xargs)
+    HomeMnt=$(findmnt -n -o TARGET "$HomeDev" 2>/dev/null)
     if [ "$HomeMnt" != "/mnt/home" ]; then
         echo "vg-home not mounted at /mnt/home."
-        crypto-partitioner
-        return
+        return 1
     fi
+
     echo "All checks passed!"
 }
+
 
 # CREATES PARTITIONS FOR FDE DISABLED INSTALL
 non-crypto-partitioner (){
