@@ -16,7 +16,7 @@ A Linux operating system leveraging KVM and Arch to provide an exceptionally sec
 <ins>**Recommended:**</ins>  
 **Storage:** 2TB+ total usable storage, RAID1 or RAID1+0.  
 **Processor:** Any Intel or AMD processor with 16+ threads capable of 3GHz+, must support minimum virtualization features. Note: Additonal processor cores/threads allow for additonal VMs and increased performance.  
-**GPU:** Any integrated or discrete AMD/NVIDIA/Intel GPU for hypervisor, RTX2060+ or RX5600XT+ for high performance VMs. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
+**GPU:** Any integrated or discrete AMD/NVIDIA/Intel GPU for hypervisor, RTX 2060+ or RX 5600 XT+ for high performance VMs. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
 **Motherboard:** Any UEFI capable motherboard newer than 2015 that supports multiple GPUs.  
 
 ## Install Guide:
