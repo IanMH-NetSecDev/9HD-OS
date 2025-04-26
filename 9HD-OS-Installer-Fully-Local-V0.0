@@ -332,17 +332,15 @@ check-drive() {
     fi
 
     # Check if vg-root is mounted at /mnt
-    RootDev=$(lvdisplay | grep -oP 'LV Path\s*=\s*/dev/mapper/\S*' | grep "vg-root" | awk '{print $3}')
-    RootMnt=$(findmnt -n -o TARGET "$RootDev" 2>/dev/null)
-    if [ "$RootMnt" != "/mnt" ]; then
-        echo "vg-root not mounted at /mnt."
+    RootDev=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-root" | awk '{print $2}')
+    if [ "${RootDev}" != "/mnt" ]; then
+        echo "vg-root is not mounted at /mnt"
         return 1
     fi
 
     # Check if vg-home is mounted at /mnt/home
-    HomeDev=$(lvdisplay | grep -oP 'LV Path\s*=\s*/dev/mapper/\S*' | grep "vg-home" | awk '{print $3}')
-    HomeMnt=$(findmnt -n -o TARGET "$HomeDev" 2>/dev/null)
-    if [ "$HomeMnt" != "/mnt/home" ]; then
+    HomeDev=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-home" | awk '{print $2}')
+    if [ "${HomeMnt}" != "/mnt/home" ]; then
         echo "vg-home not mounted at /mnt/home."
         return 1
     fi
