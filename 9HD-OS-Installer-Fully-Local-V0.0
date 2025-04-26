@@ -304,11 +304,11 @@ crypto-partitioner-check-drive() {
     # Validate root LV size (~8GiB)
     RootSize=$(lsblk -no SIZE -b /dev/mapper/vg-root | awk '{print $1/1024/1024/1024}')  # in GiB
     if (( ${RootSize} != 8 )); then
-        crypto-partitioner-fail "$1" "vg-root size incorrect (expected ~8GiB, got ${RootSize}GiB)."
+        crypto-partitioner-fail "$1" "vg-root size incorrect (expected 8GiB, got ${RootSize}GiB)."
     fi
     # Validate swap is active
     if ! lsblk -no NAME,TYPE /dev/mapper/vg-swap | grep -qw "swap"; then
-        crypto-partitioner-fail "$1" "Swap is not active on vg-swap."
+        crypto-partitioner-fail "$1" "SWAP is not active on vg-swap."
     fi
     # Check if vg-root is mounted at /mnt
     RootMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-root" | awk '{print $2}')
