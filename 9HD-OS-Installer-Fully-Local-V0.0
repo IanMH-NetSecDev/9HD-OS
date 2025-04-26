@@ -257,12 +257,11 @@ check-drive() {
     DiskPath="/dev/$1"
     # Check partitions
     parted -s "$DiskPath" print > /tmp/partinfo.txt
-    grep -qE " 1 .* 1024MiB" /tmp/partinfo.txt || { echo "Partition 1 size incorrect."; crypto-partitioner "$1" ; return; }
-    grep -qE " 2 .* 550MiB" /tmp/partinfo.txt || { echo "Partition 2 size incorrect."; crypto-partitioner "$1" ; return; }
+    grep -qE " 1 .* 1024MiB" /tmp/partinfo.txt || { echo "Partition 1 size incorrect."; return; }
+    grep -qE " 2 .* 550MiB" /tmp/partinfo.txt || { echo "Partition 2 size incorrect."; return; }
     LuksPartSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
     if (( $(echo "$LuksPartSize <= 15" | bc -l) )); then
         echo "Partition 3 size too small."
-        crypto-partitioner "$1" 
         return
     fi
     # Check EFI mount
@@ -270,46 +269,41 @@ check-drive() {
     EfiMnt=$(findmnt -n -o TARGET "$EfiDev")
     if [ "$EfiMnt" != "/mnt/efi" ]; then
         echo "Partition 2 not mounted at /mnt/efi."
-        crypto-partitioner "$1" 
         return
     fi
     # Find open LUKS device
     LuksMapper=$(lsblk -no TYPE,NAME | awk '$1=="crypt" {print $2}')
     if [ -z "$LuksMapper" ]; then
         echo "No open LUKS container found."
-        crypto-partitioner "$1" 
         return
     fi
     LuksPath="/dev/mapper/$LuksMapper"
     # Check LVM setup
-    vgs | grep -qw "vg-swap" || { echo "Missing vg-swap."; crypto-partitioner "$1" ; return; }
-    vgs | grep -qw "vg-root" || { echo "Missing vg-root."; crypto-partitioner "$1" ; return; }
-    vgs | grep -qw "vg-home" || { echo "Missing vg-home."; crypto-partitioner "$1" ; return; }
+    vgs | grep -qw "vg-swap" || { echo "Missing vg-swap."; return; }
+    vgs | grep -qw "vg-root" || { echo "Missing vg-root."; return; }
+    vgs | grep -qw "vg-home" || { echo "Missing vg-home."; return; }
     SwapSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-swap | xargs)
     RootSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-root | xargs)
     if (( $(echo "$SwapSize < 3.5" | bc -l) )) || (( $(echo "$SwapSize > 4.5" | bc -l) )); then
         echo "vg-swap size incorrect."
-        crypto-partitioner "$1" 
         return
     fi
     if (( $(echo "$RootSize < 7.5" | bc -l) )) || (( $(echo "$RootSize > 8.5" | bc -l) )); then
         echo "vg-root size incorrect."
-        crypto-partitioner "$1" 
         return
     fi
     # Check swap active
-    swapon --show=NAME | grep -q "/dev/mapper/vg--swap-" || { echo "Swap not active."; crypto-partitioner "$1" ; return; }
+    swapon --show=NAME | grep -q "/dev/mapper/vg--swap-" || { echo "Swap not active."; return; }
     # Check mounts
     RootMnt=$(findmnt -n -o TARGET /dev/mapper/vg--root-* 2>/dev/null)
     HomeMnt=$(findmnt -n -o TARGET /dev/mapper/vg--home-* 2>/dev/null)
     if [ "$RootMnt" != "/mnt" ]; then
         echo "vg-root not mounted at /mnt."
-        crypto-partitioner "$1" 
         return
     fi
     if [ "$HomeMnt" != "/mnt/home" ]; then
         echo "vg-home not mounted at /mnt/home."
-        crypto-partitioner "$1" 
+        crypto-partitioner
         return
     fi
     echo "All checks passed!"
