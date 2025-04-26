@@ -141,6 +141,7 @@ crypto-passkey-capture (){
     echo ""
     if [[ -n "$CryptPassKey" && -n "$CryptPassKey2" && "$CryptPassKey" == "$CryptPassKey2" ]]; then 
         echo "Passwords match. Proceeding..."
+        CryptPassKey2="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         unset CryptPassKey2 #clear CryptPassKey2 for security
         crypto-partitioner "$1"
     else
@@ -183,7 +184,7 @@ crypto-partitioner (){
         EfiStart=$((BiosEnd + 1))
         EfiEnd=$((EfiStart + EfiSizeKB * SectorsPerKB - 1))
         LuksStart=$((EfiEnd + 1))
-        LuksEnd=$(sgdisk -E "DiskPath")
+        LuksEnd=$(sgdisk -E "$DiskPath")
         if [[ "$1" == nvme* ]]; then
             BiosPartPath="/dev/${1}p1"
             EfiPartPath="/dev/${1}p2"
@@ -228,6 +229,7 @@ crypto-partitioner (){
         partprobe "$DiskPath" #refresh part table
         echo -n "$CryptPassKey" | cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode --key-file=- #create LUKS container
         echo -n "$CryptPassKey" | cryptsetup open "${LuksPartPath}" cryptlvm --key-file=- #open the LUKS container
+        CryptPassKey="aaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaaa"
         unset CryptPassKey #clear CryptPassKey for security
         partprobe "$DiskPath" #refresh part table
         pvcreate /dev/mapper/cryptlvm
@@ -332,14 +334,14 @@ check-drive() {
     fi
 
     # Check if vg-root is mounted at /mnt
-    RootDev=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-root" | awk '{print $2}')
-    if [ "${RootDev}" != "/mnt" ]; then
+    RootMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-root" | awk '{print $2}')
+    if [ "${RootMnt}" != "/mnt" ]; then
         echo "vg-root is not mounted at /mnt"
         return 1
     fi
 
     # Check if vg-home is mounted at /mnt/home
-    HomeDev=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-home" | awk '{print $2}')
+    HomeMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-home" | awk '{print $2}')
     if [ "${HomeMnt}" != "/mnt/home" ]; then
         echo "vg-home not mounted at /mnt/home."
         return 1
