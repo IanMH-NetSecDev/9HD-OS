@@ -77,7 +77,8 @@ select-install-disk (){
 }
 
 # TESTS IF DISK EXISTS, THEN PROMPTS USER TO USE OR TO NOT USE LUKS FDE
-select-FDE (){
+# FUTURE ADDITION (P4): allow user to change crypto algo
+select-FDE (){ 
     clear
     DiskPath="/dev/$1"
     if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then #tests for wildcards to prevent directory transversal. returns to disk select if present (probs not needed, leaving for security)
@@ -110,7 +111,7 @@ select-FDE (){
     echo ""
     echo "SELECTED DISK: $1"
     echo ""
-    echo -e "\e[1;36mDO YOU WANT TO USE LUKS1 SHA512 FULL DISK ENCRYPTION? (YES or NO) \e[0m "
+    echo -e "\e[1;36mDO YOU WANT TO USE LUKS1 AES-XTS-PLAIN64 FULL DISK ENCRYPTION? (YES or NO) \e[0m "
     echo "NOTE: FULL DISK ENCRYPTION IS HIGHLY RECOMMENDED."
     echo ""
     read -r -p "RESPONSE: " UseCryptoResponse < /dev/tty
@@ -151,7 +152,8 @@ crypto-passkey-capture (){
 }
 
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
-crypto-partitioner (){
+# FUTURE ADDITION (P3): add checks to ensure drive structure is correct. FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P4): migrate to LUKS2
+crypto-partitioner (){ 
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
     echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
@@ -159,7 +161,7 @@ crypto-partitioner (){
     echo ""
     echo "SELECTED DISK: $1"
     echo ""
-    echo -e "\e[1;36mYOU HAVE SELECTED TO USE LUKS1 SHA512 FDE, AND TO USE THE LISTED DISK AS YOUR PRIMARY DRIVE. DO YOU WISH TO CONTINUE? (YES or NO)"
+    echo -e "\e[1;36mYOU HAVE SELECTED TO USE LUKS1 AES-XTS-PLAIN64 FDE, AND TO USE THE LISTED DISK AS YOUR PRIMARY DRIVE. DO YOU WISH TO CONTINUE? (YES or NO)"
     echo -e "\e[1;31mWARNING: THE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
     echo ""
     read -r -p "RESPONSE: " StartPartitioner < /dev/tty
@@ -243,12 +245,74 @@ crypto-partitioner (){
         swapon /dev/vg/swap #enable SWAP
         mkfs.fat -F32 $EfiPartPath
         mkdir /mnt/efi
-        mount $EfiPartPath /mnt/efi
-        echo "End of section reached. Aborting..."
-        abort-install
+        mount $EfiPartPath /mnt/efi 
+        echo "Drive commands complete... Checking for integrity..."
+        check-drive "$1"
     else
         crypto-partitioner "$1"
     fi
+}
+
+check-drive() {
+    DiskPath="/dev/$1"
+    # Check partitions
+    parted -s "$DiskPath" print > /tmp/partinfo.txt
+    grep -qE " 1 .* 1024MiB" /tmp/partinfo.txt || { echo "Partition 1 size incorrect."; crypto-partitioner "$1" ; return; }
+    grep -qE " 2 .* 550MiB" /tmp/partinfo.txt || { echo "Partition 2 size incorrect."; crypto-partitioner "$1" ; return; }
+    LuksPartSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
+    if (( $(echo "$LuksPartSize <= 15" | bc -l) )); then
+        echo "Partition 3 size too small."
+        crypto-partitioner "$1" 
+        return
+    fi
+    # Check EFI mount
+    EfiDev=$(lsblk -no NAME "${DiskPath}2" | head -n1 | sed "s|^|/dev/|")
+    EfiMnt=$(findmnt -n -o TARGET "$EfiDev")
+    if [ "$EfiMnt" != "/mnt/efi" ]; then
+        echo "Partition 2 not mounted at /mnt/efi."
+        crypto-partitioner "$1" 
+        return
+    fi
+    # Find open LUKS device
+    LuksMapper=$(lsblk -no TYPE,NAME | awk '$1=="crypt" {print $2}')
+    if [ -z "$LuksMapper" ]; then
+        echo "No open LUKS container found."
+        crypto-partitioner "$1" 
+        return
+    fi
+    LuksPath="/dev/mapper/$LuksMapper"
+    # Check LVM setup
+    vgs | grep -qw "vg-swap" || { echo "Missing vg-swap."; crypto-partitioner "$1" ; return; }
+    vgs | grep -qw "vg-root" || { echo "Missing vg-root."; crypto-partitioner "$1" ; return; }
+    vgs | grep -qw "vg-home" || { echo "Missing vg-home."; crypto-partitioner "$1" ; return; }
+    SwapSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-swap | xargs)
+    RootSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-root | xargs)
+    if (( $(echo "$SwapSize < 3.5" | bc -l) )) || (( $(echo "$SwapSize > 4.5" | bc -l) )); then
+        echo "vg-swap size incorrect."
+        crypto-partitioner "$1" 
+        return
+    fi
+    if (( $(echo "$RootSize < 7.5" | bc -l) )) || (( $(echo "$RootSize > 8.5" | bc -l) )); then
+        echo "vg-root size incorrect."
+        crypto-partitioner "$1" 
+        return
+    fi
+    # Check swap active
+    swapon --show=NAME | grep -q "/dev/mapper/vg--swap-" || { echo "Swap not active."; crypto-partitioner "$1" ; return; }
+    # Check mounts
+    RootMnt=$(findmnt -n -o TARGET /dev/mapper/vg--root-* 2>/dev/null)
+    HomeMnt=$(findmnt -n -o TARGET /dev/mapper/vg--home-* 2>/dev/null)
+    if [ "$RootMnt" != "/mnt" ]; then
+        echo "vg-root not mounted at /mnt."
+        crypto-partitioner "$1" 
+        return
+    fi
+    if [ "$HomeMnt" != "/mnt/home" ]; then
+        echo "vg-home not mounted at /mnt/home."
+        crypto-partitioner "$1" 
+        return
+    fi
+    echo "All checks passed!"
 }
 
 # CREATES PARTITIONS FOR FDE DISABLED INSTALL
