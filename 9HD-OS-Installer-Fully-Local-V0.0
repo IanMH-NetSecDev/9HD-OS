@@ -339,13 +339,13 @@ crypto-partitioner-fail(){
     echo -e "\e[1;31mISSUE WITH THIS INSTALLER. WOULD YOU LIKE TO ABORT, RETRY DISK SELECTION, OR FORCE PROCEED?\e[0m "
     echo -e "\e[1;31mWARNING: THERE IS NO GUARANTEE YOUR SYSTEM WILL FUNCTION PROPERLY IF YOU FORCE PROCEED.\e[0m "
     echo ""
-    echo -e "\e[1;36mREASON FOR FAILURE:\e[1;31m $2"
+    echo -e "\e[1;31mREASON FOR FAILURE:\e[0m $2"
     echo ""
     echo -e "\e[1;36mCURRENT PARTITION SCHEME ON DISK IS AS FOLLOWS:\e[0m "
     echo ""
     lsblk ${DiskPath}
     echo ""
-    echo -e "\e[1;36mEnter: ABORT, RETRY, or FORCE\e[0m "
+    echo -e "\e[1;36mENTER 'ABORT', 'RETRY', 'FORCE' TO PROCEED.\e[0m "
     echo ""
     read -r -p "RESPONSE: " RestartPartitioner < /dev/tty
     if [[ "$RestartPartitioner" == "ABORT" ]]; then #abort
