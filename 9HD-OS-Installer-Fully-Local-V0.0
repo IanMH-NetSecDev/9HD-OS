@@ -271,14 +271,14 @@ check-drive() {
     EfiSize=$(parted -s "$DiskPath" unit MiB print | awk '/ 2 / {gsub("MiB",""); print int($4)}')
     LuksSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
 
-    # Validate partition 1 (1024 MiB ± margin)
-    if (( BiosSize != 1 )); then
+    # Validate partition 1 (1 MiB)
+    if (( $BiosSize != 1 )); then
         echo "Partition 1 size incorrect (expected ~1024MiB, got ${BiosSize}MiB)."
         return 1
     fi
 
-    # Validate partition 2 (550 MiB ± margin)
-    if (( EfiSize != 550 )); then
+    # Validate partition 2 (550 MiB)
+    if (( $EfiSize != 550 )); then
         echo "Partition 2 size incorrect (expected ~550MiB, got ${EfiSize}MiB)."
         return 1
     fi
@@ -314,21 +314,21 @@ check-drive() {
     done
 
     # Validate swap LV size (~4GiB)
-    SwapSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-swap | xargs)
-    if (( $(echo "$SwapSize < 3.5" | bc -l) )) || (( $(echo "$SwapSize > 4.5" | bc -l) )); then
+    SwapSize=$(lsblk -no SIZE -b /dev/mapper/vg-swap | awk '{print $1/1024/1024/1024}')  # in GiB
+    if (( ${SwapSize} != 4 )); then
         echo "vg-swap size incorrect (expected ~4GiB, got ${SwapSize}GiB)."
         return 1
     fi
 
     # Validate root LV size (~8GiB)
-    RootSize=$(lvs --noheadings --units g --nosuffix -o LV_SIZE vg-root | xargs)
-    if (( $(echo "$RootSize < 7.5" | bc -l) )) || (( $(echo "$RootSize > 8.5" | bc -l) )); then
+    RootSize=$(lsblk -no SIZE -b /dev/mapper/vg-root | awk '{print $1/1024/1024/1024}')  # in GiB
+    if (( ${SwapSize} != 8 )); then
         echo "vg-root size incorrect (expected ~8GiB, got ${RootSize}GiB)."
         return 1
     fi
 
     # Validate swap is active
-    if ! swapon --show=NAME | grep -q "/dev/mapper/vg--swap-"; then
+    if ! lsblk -no NAME,TYPE /dev/mapper/vg-swap | grep -qw "swap"; then
         echo "Swap is not active on vg-swap."
         return 1
     fi
