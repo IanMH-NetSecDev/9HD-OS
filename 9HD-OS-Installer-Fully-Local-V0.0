@@ -329,15 +329,11 @@ crypto-partitioner-check-drive() {
 crypto-partitioner-fail(){
     DiskPath="/dev/$1"
     clear
-    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
-    echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
-    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
-    echo ""
-    echo "SELECTED DISK: $1"
-    echo ""
     echo -e "\e[1;31mERROR: DRIVE PARTITION SCHEME FAILED INTEGRITY CHECKS. THIS COULD INDICATE AN UNRECOVERABLE\e[0m "
     echo -e "\e[1;31mISSUE WITH THIS INSTALLER. WOULD YOU LIKE TO ABORT, RETRY DISK SELECTION, OR FORCE PROCEED?\e[0m "
     echo -e "\e[1;31mWARNING: THERE IS NO GUARANTEE YOUR SYSTEM WILL FUNCTION PROPERLY IF YOU FORCE PROCEED.\e[0m "
+    echo ""
+    echo -e "\e[1;31mSELECTED DISK:\e[0m $1"
     echo ""
     echo -e "\e[1;31mREASON FOR FAILURE:\e[0m $2"
     echo ""
@@ -351,7 +347,7 @@ crypto-partitioner-fail(){
     if [[ "$RestartPartitioner" == "ABORT" ]]; then #abort
         abort-install
     elif [[ "$RestartPartitioner" == "RETRY" ]]; then #return to partitioner
-        crypto-passkey-capture "$1"
+        select-install-disk
     elif [[ "$RestartPartitioner" == "FORCE" ]]; then
         abort-install #FUTURE ADDITION (P1): replace this with call to proceed function
     else
