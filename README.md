@@ -10,12 +10,14 @@ A Linux operating system leveraging KVM and Arch to provide an exceptionally sec
 <ins>**Minimum:**</ins>  
 **Storage:** 20GB+ for base system, 50GB+ for base system and all default VMs.  
 **Processor:** Intel processor with Intel VT-x and Intel 64 virtualization extensions for x86-based systems -or- AMD processor with AMD-V and AMD64 virtualization extensions. 1-2 processor threads per desired VM (depending on guest OS). Note: Additonal processor cores/threads allow for additonal VMs and increased performance.  
+**RAM:** 2GB+ for base system, 1-4GB+ per desired VM depending on guest OS.  
 **GPU:** Any newer than 2015, some older GPUs may work. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Driver stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
 **Motherboard:** Any that supports UEFI. Not all motherbaords support multiple GPUs and PCIe passthrough features.  
 
 <ins>**Recommended:**</ins>  
 **Storage:** 2TB+ total usable storage, RAID1 or RAID1+0.  
 **Processor:** Any Intel or AMD processor with 16+ threads capable of 3GHz+, must support minimum virtualization features. Note: Additonal processor cores/threads allow for additonal VMs and increased performance.  
+**RAM:** 4GB+ for base system, 1-32GB+ per desired VM depending on guest OS.  
 **GPU:** Any integrated or discrete AMD/NVIDIA/Intel GPU for hypervisor, RTX 2060+ or RX 5600 XT+ for high performance VMs. Note: VM Performance benefits substantially from access to multiple GPUs and/or more powerful GPU(s). Driver stability for hypervisor and Linux VMs better with AMD GPUs versus NVIDIA/Intel.  
 **Motherboard:** Any UEFI capable motherboard newer than 2015 that supports multiple GPUs.  
 
