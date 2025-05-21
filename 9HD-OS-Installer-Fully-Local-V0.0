@@ -54,6 +54,7 @@ check-efi-mode (){
         echo "System is booted in UEFI mode. Proceeding..."
         check-virt-support
     else
+        clear
         echo -e "\e[1;31mWARNING: YOUR MACHINE IS NOT BOOTED IN EFI MODE. THIS MAY RESULT IN THE SYSTEM FUNCTIONING INCORRECTLY. IT IS HIGHLY RECOMMENDED"
         echo -e "TO ABORT AND REBOOT IN UEFI MODE IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
         user-prompt "up-helper-yes" "check-virt-support" "abort-install"
@@ -66,6 +67,7 @@ check-virt-support (){
         echo "System has virtualization support. Proceeding..."
         select-install-disk
     else
+        clear
         echo -e "\e[1;31mWARNING: YOUR MACHINE DOES NOT APPEAR TO SUPPORT VIRTUALIZATION. THIS WILL PREVENT MANY CORE FEATURES OF 9HD OS FROM FUNCTIONING. IT IS HIGHLY RECOMMENDED"
         echo -e "TO ABORT AND ENABLE VIRTUALIZATION SUPPORT IN YOUR BIOS IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
         user-prompt "up-helper-yes" "select-install-disk" "abort-install"
@@ -337,6 +339,7 @@ crypto-partitioner-check-drive() {
     fi
     lsblk
     echo "All checks passed! Disk formatted correctly. Proceeding..."
+    manage-packages
 }
 
 # ALLOWS USER TO RETRY, ABORT, OR FORCE PROCEED IF PARTITIONING CHECKS FAIL
@@ -395,7 +398,6 @@ non-crypto-partitioner (){
 }
 
 # SETS UP PACMAN AND INSTALLS REQUIRED PACKAGES
-# FUTURE ADDITION (P1): finish this
 manage-packages (){
     echo "Starting package manager initialization..."
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
@@ -412,8 +414,9 @@ generate-fstab (){
     select-timezone
 }
 
+# SELECTS A TIMEZONE
 select-timezone (){
-
+    abort-install
 }
 
 # ASCII ART
