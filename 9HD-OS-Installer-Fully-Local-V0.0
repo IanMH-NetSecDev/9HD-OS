@@ -50,12 +50,24 @@ start-install (){
 # CHECKS THAT THE MACHINE IS BOOTED IN EFI MODE
 # prompts user if they want to proceed if not in EFI mode, proceeds to "select-install-disk" if in EFI mode or if user responds with "YES".
 check-efi-mode (){
-    if [ -d /sys/firmware/efi ]; then
+    if [ -d /sys/firmware/efi ]; then #this may be a bad method
         echo "System is booted in UEFI mode. Proceeding..."
-        select-install-disk
+        check-virt-support
     else
         echo -e "\e[1;31mWARNING: YOUR MACHINE IS NOT BOOTED IN EFI MODE. THIS MAY RESULT IN THE SYSTEM FUNCTIONING INCORRECTLY. IT IS HIGHLY RECOMMENDED"
         echo -e "TO ABORT AND REBOOT IN UEFI MODE IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
+        user-prompt "up-helper-yes" "check-virt-support" "abort-install"
+    fi
+}
+
+check-virt-support (){
+    enabled=$(lscpu | grep -i 'Virtualization' | awk '{print $2}')
+    if [[ "$enabled" == "VT-x" || "$enabled" == "AMD-V" || "$enabled" == "Yes" ]]; then
+        echo "System has virtualization support. Proceeding..."
+        select-install-disk
+    else
+        echo -e "\e[1;31mWARNING: YOUR MACHINE DOES NOT APPEAR TO SUPPORT VIRTUALIZATION. THIS WILL PREVENT MANY CORE FEATURES OF 9HD OS FROM FUNCTIONING. IT IS HIGHLY RECOMMENDED"
+        echo -e "TO ABORT AND ENABLE VIRTUALIZATION SUPPORT IN YOUR BIOS IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
         user-prompt "up-helper-yes" "select-install-disk" "abort-install"
     fi
 }
@@ -153,7 +165,7 @@ crypto-passkey-capture (){
 }
 
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
-# FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P2): allow user to select swap/root/home partition sizes. FUTURE ADDITION (P4): migrate to LUKS2
+# FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P2): allow user to select swap/root/home partition sizes. FUTURE ADDITION (P3): add TPM support. FUTURE ADDITION (P4): migrate to LUKS2
 crypto-partitioner (){ 
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
@@ -254,7 +266,10 @@ crypto-partitioner (){
     fi
 }
 
+# CHECKS THAT RESULTING PARTITION SCHEME IS CORRECT
+# FUTURE ADDITION (P2): allow user to select swap/root/home partition sizes.
 crypto-partitioner-check-drive() {
+    echo "Starting partition/cryptcontainer/LVM integrity checks..."
     DiskPath="/dev/$1"
     # Check device exists
     if [ ! -b "$DiskPath" ]; then
@@ -322,7 +337,6 @@ crypto-partitioner-check-drive() {
     fi
     lsblk
     echo "All checks passed! Disk formatted correctly. Proceeding..."
-    abort-install #FUTURE ADDITION (P1): replace this with call to proceed function
 }
 
 # ALLOWS USER TO RETRY, ABORT, OR FORCE PROCEED IF PARTITIONING CHECKS FAIL
@@ -330,7 +344,7 @@ crypto-partitioner-fail(){
     DiskPath="/dev/$1"
     clear
     echo -e "\e[1;31mERROR: DRIVE PARTITION SCHEME FAILED INTEGRITY CHECKS. THIS COULD INDICATE AN UNRECOVERABLE\e[0m "
-    echo -e "\e[1;31mISSUE WITH THIS INSTALLER. WOULD YOU LIKE TO ABORT, RETRY DISK SELECTION, OR FORCE PROCEED?\e[0m "
+    echo -e "\e[1;INCOMPATIBILITY WITH YOUR HARDWARE. WOULD YOU LIKE TO ABORT, RETRY DISK SELECTION, OR FORCE PROCEED?\e[0m "
     echo -e "\e[1;31mWARNING: THERE IS NO GUARANTEE YOUR SYSTEM WILL FUNCTION PROPERLY IF YOU FORCE PROCEED.\e[0m "
     echo ""
     echo -e "\e[1;31mREASON FOR FAILURE:\e[0m $2"
@@ -378,6 +392,28 @@ non-crypto-partitioner (){
     else
         non-crypto-partitioner $1
     fi
+}
+
+# SETS UP PACMAN AND INSTALLS REQUIRED PACKAGES
+# FUTURE ADDITION (P1): finish this
+manage-packages (){
+    echo "Starting package manager initialization..."
+    cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
+    pacman -Sy pacman-contrib --noconfirm
+    rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
+    pacstrap -K /mnt base linux linux-firmware mkinitcpio lvm2 base-devel
+    generate-fstab
+}
+
+# GENERATES FSTAB
+generate-fstab (){
+    arch-chroot /mnt 
+    genfstab -U /mnt >> /mnt/etc/fstab
+    select-timezone
+}
+
+select-timezone (){
+
 }
 
 # ASCII ART
