@@ -167,7 +167,8 @@ crypto-passkey-capture (){
 }
 
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
-# FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P2): allow user to select swap/root/home partition sizes. FUTURE ADDITION (P3): add TPM support. FUTURE ADDITION (P4): migrate to LUKS2
+# FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P2): allow user to select swap/root/home partition sizes. 
+# FUTURE ADDITION (P3): add TPM support. FUTURE ADDITION (P4): migrate to LUKS2
 crypto-partitioner (){ 
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
@@ -242,7 +243,7 @@ crypto-partitioner (){
         partprobe "$DiskPath" #refresh part table
         echo -n "$CryptPassKey" | cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode --key-file=- #create LUKS container
         echo -n "$CryptPassKey" | cryptsetup open "${LuksPartPath}" cryptlvm --key-file=- #open the LUKS container
-        CryptPassKey="0000000000000000000000000000000000000"
+        CryptPassKey="0000000000000000000000000000000000000" #overwrite with nonsense to prevent caching
         unset CryptPassKey #clear CryptPassKey for security
         partprobe "$DiskPath" #refresh part table
         pvcreate /dev/mapper/cryptlvm
@@ -422,6 +423,58 @@ select-timezone (){
 # ASCII ART
 startup-ascii (){
 clear
+echo "                                                                                                         "
+echo "                                                                                                         "
+echo "                                                ██     ██                                                "
+echo "                                                ██     ██                                                "
+echo "                                   ██          ███     ███          ███                                  "
+echo "                                ███           █████   █████           ███                                "
+echo "                              ███████████     █████████████     ███████████                              "
+echo "                            █  ██  ██████        ███████        ██████  ██  █                            "
+echo "                           ███████ ██████████   █████████   ██████████ ████████                          "
+echo "                               ██  ███████      █████████      ███████  ██                               "
+echo "                            ███    ████ ███     █  ███  █     ███ ████    ███                            "
+echo "                                      █ █████    █  █  █    █████ █                                      "
+echo "                            ██████      ███████   █████   ███████      ██████                            "
+echo "                      █████████          █████  █  ███  ██ █████          █████████                      "
+echo "                   ██ █  ████             ███  ███     ███  ████            ████  █  █                   "
+echo "                  █  █████ ██████████     ███    ██   ██    ███     ██████████ █████  █                  "
+echo "               ██████ █████ ████████        █     █████     █        ████████  ████ ██████               "
+echo "               ███   ████  ███ ██████████      ██  ███  ███     ██████████ ███  ████   ███               "
+echo "                    ██     ██  ███████████    ████  █  ████    ███████████  ██     ██                    "
+echo "                   █           ██████ █████  ██████   ██████  ████████████           █                   "
+echo "                                ████  ██████ ███████ ███████ ██████  ████                                "
+echo "                                   █   █████ ████ █████ ████ █████   ██                                  "
+echo "                    ████                 ████████  ███  █████████                ████                    "
+echo "                ██ ███                    ███████       ███████                     ██ ██                "
+echo "               ██  ███████████████           ███         ███           ███████████████  ██               "
+echo "             ███████████████████████          ███       ███          ███████████████████████             "
+echo "           ███    ██████████ ███████████████    ██     ██    ██████████████████████████    ███           "
+echo "                  ██    ██  █████████████████     ██ ███    █████████████████  ██    ██                  "
+echo "               ████          █████ ████████████    ███     ███████████ █████          ████               "
+echo "                                   ██████████████        █████████████                                   "
+echo "          █                         ██████████████     ██████████████                         █          "
+echo "        ███████████                    █  █████████████████████  █                    ███████████        "
+echo "             ███  █████████              ██ █████████████████ ██              █████████  ███             "
+echo "         █      ████████               █████  ██████████████ █████               █████████     █         "
+echo "         ████████████████████    ████████████  ███████████  ████████████    ████████████████████         "
+echo "                  ███████████████████████████     █████     ███████████████████████████                  "
+echo "                   ███████████████████████     ██  ███  ██     ███████████████████████                   "
+echo "                    ████ ████████████         ████  █  ████         ████████████ ████                    "
+echo "                          ████  ██             ████   ████             ██  ████                          "
+echo "                                                 ███ ███                                                 "
+echo "                                                 ███████                                                 "
+echo "                                                  █████                                                  "
+echo "                                                   ███                                                   "
+echo "                                                    █                                                    "
+echo "                                                                                                         "
+echo "                                                                                                         "
+}
+
+### INITIAL CLS EXECUTIONS
+startup-ascii
+initial-user-prompt
+
 echo -e "\e[0;36m"
 echo "                                :-            %     %            -                                "
 echo "                              -@%%@*  ::    = @:    @::    :: :#@*@#:                             "
@@ -471,8 +524,3 @@ echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |
 echo ""
 echo -e "\e[1;31m ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? THIS WILL CAUSE LARGE CHANGES TO YOUR SYSTEM." 
 echo -e " AN INTERNET CONNECTION IS REQUIRED. Type YES to contiue, or anything else to abort...\e[0m "
-}
-
-### INITIAL CLS EXECUTIONS
-startup-ascii
-initial-user-prompt
