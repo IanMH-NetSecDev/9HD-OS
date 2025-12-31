@@ -42,6 +42,4 @@ Ian MH,
 Network Security Dev
 
 ## Special Thanks:
-Kevin Cleary - Mentoring and administration  
-Afton Spiegel - Rubber ducking and encouragement  
-Peeledhotdog (discord) - Art  
+Peeledhotdog - Art  
