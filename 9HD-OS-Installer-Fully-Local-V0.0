@@ -3,6 +3,7 @@
 ### GENERIC FUNCTIONS, TO BE USED OFTEN ###
 
 # FLEXIBLE TUI USER PROMPT
+# FUTURE ADDITION (P1): Deprecate this fully
 # accepts one input from terminal after the word "RESPONSE: " and executes the helper function or command passed to it in code (does not accept "" or '')
 # syntax for using this is as so: user-prompt "<helper function to call>" "<command on proc>" "<command on fail>"
 user-prompt(){
@@ -26,7 +27,7 @@ abort-install (){
 
 ### HIGHLY SPECIFIC FUNCTIONS, TO BE USED ONE-FEW TIMES ###
 
-# INITRIAL USER PROMPT & HELPER FUNCTION
+# INITIAL USER PROMPT & HELPER FUNCTION
 initial-user-prompt (){
     read -r -t 120 -p " RESPONSE: " Input < /dev/tty
     initial-user-prompt-responder "$Input"
@@ -44,13 +45,19 @@ initial-user-prompt-responder (){
 start-install (){
     clear
     echo -e "===\e[1;36m PROCEEDING WITH 9HD-OS INSTALLATION\e[0m ==="
+    timedatectl set-ntp true
+    if ! command -v dialog &>/dev/null; then
+        echo "Installing dependencies..."
+        pacman -Sy --noconfirm dialog
+    fi
     check-efi-mode
 }
 
 # CHECKS THAT THE MACHINE IS BOOTED IN EFI MODE
+# FUTURE ADDITION (P4): Look into updating method for checking if in EFI mode
 # prompts user if they want to proceed if not in EFI mode, proceeds to "select-install-disk" if in EFI mode or if user responds with "YES".
 check-efi-mode (){
-    if [ -d /sys/firmware/efi ]; then #this may be a bad method
+    if [ -d /sys/firmware/efi ]; then #this may be a bad method. 
         echo "System is booted in UEFI mode. Proceeding..."
         check-virt-support
     else
@@ -65,13 +72,48 @@ check-virt-support (){
     enabled=$(lscpu | grep -i 'Virtualization' | awk '{print $2}')
     if [[ "$enabled" == "VT-x" || "$enabled" == "AMD-V" || "$enabled" == "Yes" ]]; then
         echo "System has virtualization support. Proceeding..."
-        select-install-disk
+        gather-localization-info
     else
         clear
         echo -e "\e[1;31mWARNING: YOUR MACHINE DOES NOT APPEAR TO SUPPORT VIRTUALIZATION. THIS WILL PREVENT MANY CORE FEATURES OF 9HD OS FROM FUNCTIONING. IT IS HIGHLY RECOMMENDED"
         echo -e "TO ABORT AND ENABLE VIRTUALIZATION SUPPORT IN YOUR BIOS IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
         user-prompt "up-helper-yes" "select-install-disk" "abort-install"
     fi
+}
+
+# GATHERS INFO TO USE FOR MIRRORLIST, TIMEZONE, AND LOCALE LATER ON
+gather-localization-info() {
+    # --- Country selection ---
+    CountryCode=$(dialog --inputbox "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 2>&1 >/dev/tty)
+    while [[ ! "$CountryCode" =~ ^[A-Za-z]{2}$ ]]; do
+        CountryCode=$(dialog --inputbox "Invalid input. Enter a two-letter country code (e.g., US, DE, JP):" 8 40 2>&1 >/dev/tty)
+    done
+    CountryCode="${CountryCode^^}"   # convert to uppercase
+
+    # --- Timezone selection ---
+    TimeZone=$(dialog --inputbox "Enter your timezone (Region/City, e.g., America/New_York):" 8 60 2>&1 >/dev/tty)
+    while [[ ! -f "/usr/share/zoneinfo/$TimeZone" ]]; do
+        TimeZone=$(dialog --inputbox "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 2>&1 >/dev/tty)
+    done
+
+    # --- Locale selection ---
+    LocaleCode=$(dialog --inputbox "Enter your locale (e.g., en_US.UTF-8, de_DE.UTF-8):" 8 60 2>&1 >/dev/tty)
+    while [[ ! "$LocaleCode" =~ ^[a-z]{2}_[A-Z]{2}\.UTF-8$ ]]; do
+        LocaleCode=$(dialog --inputbox "Invalid locale. Example format: en_US.UTF-8" 8 60 2>&1 >/dev/tty)
+    done
+
+    # --- Display summary and confirm ---
+    while true; do
+        dialog --yesno "Configuration Summary:\n\nCountry: $CountryCode\nTimezone: $TimeZone\nLocale: $LocaleCode\n\nIs this correct?" 14 50
+        response=$?
+        if [[ $response -eq 0 ]]; then
+            select-install-disk
+            break
+        else
+            unset CountryCode TimeZone LocaleCode
+            gather-localization-info
+        fi
+    done
 }
 
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION
@@ -95,7 +137,7 @@ select-install-disk (){
 select-FDE (){ 
     clear
     DiskPath="/dev/$1"
-    if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then #tests for wildcards to prevent directory transversal. returns to disk select if present (probs not needed, leaving for security)
+    if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then #tests for wildcards to prevent directory transversal. returns to disk select if present (probs not needed, leaving for fool-proofing)
         echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
         echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
         echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
@@ -151,12 +193,12 @@ crypto-passkey-capture (){
     echo ""
     read -rs -p "ENTER PASSKEY: " CryptPassKey < /dev/tty #clear this ASAP
     echo ""
-    read -rs -p "RENTER PASSKEY: " CryptPassKey2 < /dev/tty #clear this ASAP
+    read -rs -p "REENTER PASSKEY: " CryptPassKey2 < /dev/tty #clear this ASAP
     echo ""
     if [[ -n "$CryptPassKey" && -n "$CryptPassKey2" && "$CryptPassKey" == "$CryptPassKey2" ]]; then 
         echo "Passwords match. Proceeding..."
         CryptPassKey2="0000000000000000000000000000000000000"
-        unset CryptPassKey2 #clear CryptPassKey2 for security
+        unset CryptPassKey2 #clear CryptPassKey2
         crypto-partitioner "$1"
     else
         echo ""
@@ -167,8 +209,8 @@ crypto-passkey-capture (){
 }
 
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
-# FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P2): allow user to select swap/root/home partition sizes. 
-# FUTURE ADDITION (P3): add TPM support. FUTURE ADDITION (P4): migrate to LUKS2
+# FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P3): allow user to select swap/root/home partition sizes. 
+# FUTURE ADDITION (P2): add TPM support. FUTURE ADDITION (P4): migrate to LUKS2
 crypto-partitioner (){ 
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
@@ -186,7 +228,6 @@ crypto-partitioner (){
     elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
         clear
         echo "Beginning installation..."
-        timedatectl set-ntp true
         DiskPath="/dev/$1"
         DiskSize=$(blockdev --getsize64 "$DiskPath")
         DiskSizeKB=$((DiskSize / 1024))
@@ -274,66 +315,66 @@ crypto-partitioner (){
 crypto-partitioner-check-drive() {
     echo "Starting partition/cryptcontainer/LVM integrity checks..."
     DiskPath="/dev/$1"
-    # Check device exists
+    # --- Check device exists ---
     if [ ! -b "$DiskPath" ]; then
         crypto-partitioner-fail "$1" "Disk $DiskPath does not exist."
     fi
-    # Refresh partition table
+    # --- Refresh partition table ---
     partprobe "$DiskPath"
-    # Extract partition sizes
+    # --- Extract partition sizes ---
     BiosSize=$(parted -s "$DiskPath" unit MiB print | awk '/ 1 / {gsub("MiB",""); print int($4)}')
     EfiSize=$(parted -s "$DiskPath" unit MiB print | awk '/ 2 / {gsub("MiB",""); print int($4)}')
     LuksSize=$(parted -s "$DiskPath" unit GiB print | awk '/ 3 / {gsub("GiB",""); print $4}')
-    # Validate partition 1 (1 MiB)
+    # --- Validate partition 1 (1 MiB) ---
     if (( $BiosSize != 1 )); then
         crypto-partitioner-fail "$1" "Partition 1 size incorrect (expected 1MiB, got ${BiosSize}MiB)."
     fi
-    # Validate partition 2 (550 MiB)
+    # --- Validate partition 2 (550 MiB) ---
     if (( $EfiSize != 550 )); then
         crypto-partitioner-fail "$1" "Partition 2 size incorrect (expected 550MiB, got ${EfiSize}MiB)."
     fi
-    # Validate partition 3 (>15 GiB)
+    # --- Validate partition 3 (>15 GiB) ---
     if (( $(echo "$LuksSize <= 15" | bc -l) )); then
         crypto-partitioner-fail "$1" "Partition 3 size too small (got ${LuksSize}GiB)."
     fi
-    # Check if EFI partition is mounted correctly
+    # --- Check if EFI partition is mounted correctly ---
     EfiDev=$(lsblk -no NAME "${DiskPath}2" | head -n1 | sed "s|^|/dev/|")
     EfiMnt=$(findmnt -n -o TARGET "$EfiDev")
     if [ "$EfiMnt" != "/mnt/efi" ]; then
         crypto-partitioner-fail "$1" "Partition 2 not mounted at /mnt/efi (found: $EfiMnt)."
     fi
-    # Check if a LUKS container is open
+    # --- Check if a LUKS container is open ---
     LuksMapper=$(lsblk -nr -o TYPE,NAME | awk '$1=="crypt" {print $2}' | head -n1)
     if [ -z "$LuksMapper" ]; then
         crypto-partitioner-fail "$1" "No open LUKS container found."
     fi
     LuksPath="/dev/mapper/$LuksMapper"
-    # Check required volume groups exist
+    # --- Check required volume groups exist ---
     for vg in vg-swap vg-root vg-home; do
         if ! lsblk -o NAME,TYPE | grep -qw "$vg"; then
             crypto-partitioner-fail "$1" "Missing volume group: $vg."
         fi
     done
-    # Validate swap LV size (~4GiB)
-    SwapSize=$(lsblk -no SIZE -b /dev/mapper/vg-swap | awk '{print $1/1024/1024/1024}')  # in GiB
+    # --- Validate swap LV size (~4GiB) ---
+    SwapSize=$(lsblk -no SIZE -b /dev/mapper/vg-swap | awk '{printf "%.0f", $1/1024/1024/1024}')  # in GiB
     if (( ${SwapSize} != 4 )); then
         crypto-partitioner-fail "$1" "vg-swap size incorrect (expected 4GiB, got ${SwapSize}GiB)."
     fi
-    # Validate root LV size (~8GiB)
-    RootSize=$(lsblk -no SIZE -b /dev/mapper/vg-root | awk '{print $1/1024/1024/1024}')  # in GiB
+    # --- Validate root LV size (~8GiB) ---
+    RootSize=$(lsblk -no SIZE -b /dev/mapper/vg-root | awk '{printf "%.0f", $1/1024/1024/1024}')  # in GiB
     if (( ${RootSize} != 8 )); then
         crypto-partitioner-fail "$1" "vg-root size incorrect (expected 8GiB, got ${RootSize}GiB)."
     fi
-    # Validate swap is active
+    # --- Validate swap is active ---
     if ! lsblk -no NAME,TYPE /dev/mapper/vg-swap | grep -qw "swap"; then
         crypto-partitioner-fail "$1" "SWAP is not active on vg-swap."
     fi
-    # Check if vg-root is mounted at /mnt
+    # --- Check if vg-root is mounted at /mnt ---
     RootMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-root" | awk '{print $2}')
     if [ "${RootMnt}" != "/mnt" ]; then
         crypto-partitioner-fail "$1" "vg-root is not mounted at /mnt"
     fi
-    # Check if vg-home is mounted at /mnt/home
+    # --- Check if vg-home is mounted at /mnt/home ---
     HomeMnt=$(lsblk -nr -o NAME,MOUNTPOINT | grep "vg-home" | awk '{print $2}')
     if [ "${HomeMnt}" != "/mnt/home" ]; then
         crypto-partitioner-fail "$1" "vg-home not mounted at /mnt/home."
@@ -348,7 +389,7 @@ crypto-partitioner-fail(){
     DiskPath="/dev/$1"
     clear
     echo -e "\e[1;31mERROR: DRIVE PARTITION SCHEME FAILED INTEGRITY CHECKS. THIS COULD INDICATE AN UNRECOVERABLE\e[0m "
-    echo -e "\e[1;INCOMPATIBILITY WITH YOUR HARDWARE. WOULD YOU LIKE TO ABORT, RETRY DISK SELECTION, OR FORCE PROCEED?\e[0m "
+    echo -e "\e[1;31mINCOMPATIBILITY WITH YOUR HARDWARE. WOULD YOU LIKE TO ABORT, RETRY DISK SELECTION, OR FORCE PROCEED?\e[0m "
     echo -e "\e[1;31mWARNING: THERE IS NO GUARANTEE YOUR SYSTEM WILL FUNCTION PROPERLY IF YOU FORCE PROCEED.\e[0m "
     echo ""
     echo -e "\e[1;31mREASON FOR FAILURE:\e[0m $2"
@@ -367,6 +408,7 @@ crypto-partitioner-fail(){
     elif [[ "$RestartPartitioner" == "RETRY" ]]; then #return to partitioner
         select-install-disk
     elif [[ "$RestartPartitioner" == "FORCE" ]]; then
+        echo "This section not yet completed. Please restart script."
         abort-install #FUTURE ADDITION (P1): replace this with call to proceed function
     else
         crypto-partitioner-fail "$1" "$2"
@@ -400,23 +442,37 @@ non-crypto-partitioner (){
 
 # SETS UP PACMAN AND INSTALLS REQUIRED PACKAGES
 manage-packages (){
-    echo "Starting package manager initialization..."
+    echo "Starting pacstrap sequence..."
+    sed -i 's/^#ParallelDownloads/ParallelDownloads/' /etc/pacman.conf
+    pacman -Sy --noconfirm reflector
     cp /etc/pacman.d/mirrorlist /etc/pacman.d/mirrorlist.backup
-    pacman -Sy pacman-contrib --noconfirm
-    rankmirrors -n 6 /etc/pacman.d/mirrorlist.backup > /etc/pacman.d/mirrorlist
-    pacstrap -K /mnt base linux linux-firmware mkinitcpio lvm2 base-devel
+    # --- Generate a mirrorlist using country code ---
+    reflector \
+        --country "${CountryCode}" \
+        --latest 10 \
+        --protocol https \
+        --sort rate \
+        --save /etc/pacman.d/mirrorlist
+    pacstrap -K /mnt \
+        base \
+        linux \
+        linux-firmware \
+        mkinitcpio \
+        lvm2 \
+        base-devel
     generate-fstab
 }
 
 # GENERATES FSTAB
 generate-fstab (){
+    echo "Generating FSTab..."
     arch-chroot /mnt 
     genfstab -U /mnt >> /mnt/etc/fstab
     select-timezone
 }
 
-# SELECTS A TIMEZONE
-select-timezone (){
+# INITIALIZES CHROOT AND 
+begin-system-config (){
     abort-install
 }
 
@@ -471,9 +527,10 @@ echo "    \ V  V / | |___| |__| |__| |_| | |  | | |___    | || |_| |  \__, |  _ 
 echo "     \_/\_/  |_____|_____\____\___/|_|  |_|_____|   |_| \___/     /_/|_| |_|____/   \___/|____/   "
 echo ""
 echo -e "\e[1;31m ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? THIS WILL CAUSE LARGE CHANGES TO YOUR SYSTEM." 
-echo -e " AN INTERNET CONNECTION IS REQUIRED. Type YES to contiue, or anything else to abort...\e[0m "
+echo -e " AN INTERNET CONNECTION IS REQUIRED. Type YES to continue, or anything else to abort...\e[0m "
 }
 
 ### INITIAL CLS EXECUTIONS
+set -euo pipefail
 startup-ascii
 initial-user-prompt
