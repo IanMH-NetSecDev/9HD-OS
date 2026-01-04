@@ -77,7 +77,7 @@ check-virt-support (){
         clear
         echo -e "\e[1;31mWARNING: YOUR MACHINE DOES NOT APPEAR TO SUPPORT VIRTUALIZATION. THIS WILL PREVENT MANY CORE FEATURES OF 9HD OS FROM FUNCTIONING. IT IS HIGHLY RECOMMENDED"
         echo -e "TO ABORT AND ENABLE VIRTUALIZATION SUPPORT IN YOUR BIOS IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
-        user-prompt "up-helper-yes" "select-install-disk" "abort-install"
+        user-prompt "up-helper-yes" "gather-localization-info" "abort-install"
     fi
 }
 
