@@ -59,7 +59,7 @@ start-install (){
 }
 
 set-dialog-theme() {
-    local ThemeURL="https://raw.githubusercontent.com/IanMH-NetSecDev/9HD-OS/refs/heads/main/DialogTheme"
+    local ThemeURL="https://raw.githubusercontent.com/IanMH-NetSecDev/9HD-OS/refs/heads/main/Assets/DialogTheme"
     local LocalTheme="/tmp/DialogTheme.rc"
     if wget -q -O "$LocalTheme" "$ThemeURL"; then
         export DIALOGRC="$LocalTheme"
@@ -90,11 +90,11 @@ check-efi-mode (){
 check-virt-support (){
     # --- Check whether KVM vendor module would load ---
     if modprobe -n kvm_intel >/dev/null 2>&1 || modprobe -n kvm_amd >/dev/null 2>&1; then
-        virt_ok=true
+        VirtOk=true
     else
-        virt_ok=false
+        VirtOk=false
     fi
-    if [[ "$virt_ok" == true ]]; then
+    if [[ "$VirtOk" == true ]]; then
         echo "System has virtualization support. Proceeding..."
         gather-localization-info
     else
