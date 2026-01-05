@@ -49,9 +49,6 @@ start-install (){
     echo "Syncing clock..."
     timedatectl set-ntp true
     echo "Installing dependencies..."
-    if ! command -v dialog &>/dev/null; then
-        pacman -Sy --noconfirm dialog
-    fi
     if ! command -v wget &>/dev/null; then
         pacman -Sy --noconfirm wget
     fi
