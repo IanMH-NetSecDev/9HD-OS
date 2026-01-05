@@ -25,7 +25,7 @@ A Linux operating system leveraging KVM and Arch to provide an exceptionally sec
 1. Make an Arch-Linux install disk using the newest version available. https://archlinux.org/download/  
 2. Connect your Arch-Linux install to the internet wirelessly by following [this guide](https://wiki.archlinux.org/title/Network_configuration) or via Ethernet.  
 3. Install wget to your Arch-Linux install environment using the command `pacman -Sy wget`.  
-4. Download and run the install script using the command `wget -O - "https://raw.githubusercontent.com/IanMH-NetSecDev/9HD-OS/refs/heads/main/9HDOS_Installer_v0.1_Local" | bash` - make sure you replace `V#.#` with your desired version.  
+4. Download and run the install script using the command `wget -O - "https://raw.githubusercontent.com/IanMH-NetSecDev/9HD-OS/refs/heads/main/9HDOS_Installer_v0.1_Local" | bash`.  
 
 ## Long Explanation:
 Nine Headed Dragon OS (9HD OS) is intended to be a highly secure daily-driver operating system that will use Arch Linux and KVM as a starting point. The focal point of 9HD will be BareMetal (Type 1) virtualization and the heavy use of VMs. These technologies will be used to achieve a few different goals that will result in a drastic paradigm shift from traditional operating systems, both in how 9HD OS will be used and how various standard aspects of system hardening will be accomplished.  
