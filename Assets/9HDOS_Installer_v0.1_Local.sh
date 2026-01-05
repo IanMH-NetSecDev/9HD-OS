@@ -216,7 +216,7 @@ crypto-passkey-capture(){
     echo ""
     if [[ -n "$CryptPassKey" && -n "$CryptPassKey2" && "$CryptPassKey" == "$CryptPassKey2" ]]; then 
         echo "Passwords match. Proceeding..."
-        CryptPassKey2="0000000000000000000000000000000000000" #overwrite with nonsense to prevent caching
+        CryptPassKey2="" #overwrite to prevent caching
         unset CryptPassKey2 #clear CryptPassKey2
         crypto-partitioner "$1"
     else
@@ -303,7 +303,7 @@ crypto-partitioner(){
         partprobe "$DiskPath" #refresh part table
         echo -n "$CryptPassKey" | cryptsetup luksFormat --type luks1 --use-random -S 1 -s "${SectorSize}" -h sha512 -i 5000 "${LuksPartPath}" --batch-mode --key-file=- #create LUKS container
         echo -n "$CryptPassKey" | cryptsetup open "${LuksPartPath}" cryptlvm --key-file=- #open the LUKS container
-        CryptPassKey="0000000000000000000000000000000000000" #overwrite with nonsense to prevent caching
+        CryptPassKey="" #overwrite to prevent caching
         unset CryptPassKey #clear CryptPassKey for security
         partprobe "$DiskPath" #refresh part table
         pvcreate /dev/mapper/cryptlvm
