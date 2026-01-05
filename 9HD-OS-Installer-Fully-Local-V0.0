@@ -45,10 +45,15 @@ initial-user-prompt-responder (){
 start-install (){
     clear
     echo -e "===\e[1;36m PROCEEDING WITH 9HD-OS INSTALLATION\e[0m ==="
+    echo ""
+    echo "Syncing clock..."
     timedatectl set-ntp true
+    echo "Installing dependencies..."
     if ! command -v dialog &>/dev/null; then
-        echo "Installing dependencies..."
         pacman -Sy --noconfirm dialog
+    fi
+    if ! command -v wget &>/dev/null; then
+        pacman -Sy --noconfirm wget
     fi
     check-efi-mode
 }
@@ -96,15 +101,9 @@ gather-localization-info() {
         TimeZone=$(dialog --inputbox "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 2>&1 >/dev/tty)
     done
 
-    # --- Locale selection ---
-    LocaleCode=$(dialog --inputbox "Enter your locale (e.g., en_US.UTF-8, de_DE.UTF-8):" 8 60 2>&1 >/dev/tty)
-    while [[ ! "$LocaleCode" =~ ^[a-z]{2}_[A-Z]{2}\.UTF-8$ ]]; do
-        LocaleCode=$(dialog --inputbox "Invalid locale. Example format: en_US.UTF-8" 8 60 2>&1 >/dev/tty)
-    done
-
     # --- Display summary and confirm ---
     while true; do
-        dialog --yesno "Configuration Summary:\n\nCountry: $CountryCode\nTimezone: $TimeZone\nLocale: $LocaleCode\n\nIs this correct?" 14 50
+        dialog --yesno "Configuration Summary:\n\nCountry: $CountryCode\nTimezone: $TimeZone\n\n Is this correct?" 14 50
         response=$?
         if [[ $response -eq 0 ]]; then
             select-install-disk
@@ -181,7 +180,7 @@ select-FDE (){
 }
 
 # PROMPTS THE USER TO CREATE A PASSKEY FOR FDE ENABLED INSTALL
-crypto-passkey-capture (){
+crypto-passkey-capture(){
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
     echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
@@ -197,7 +196,7 @@ crypto-passkey-capture (){
     echo ""
     if [[ -n "$CryptPassKey" && -n "$CryptPassKey2" && "$CryptPassKey" == "$CryptPassKey2" ]]; then 
         echo "Passwords match. Proceeding..."
-        CryptPassKey2="0000000000000000000000000000000000000"
+        CryptPassKey2="0000000000000000000000000000000000000" #overwrite with nonsense to prevent caching
         unset CryptPassKey2 #clear CryptPassKey2
         crypto-partitioner "$1"
     else
@@ -211,7 +210,7 @@ crypto-passkey-capture (){
 # CREATES PARTITIONS FOR FDE ENABLED INSTALL
 # FUTURE ADDITION (P2): add method to backup LUKS header. FUTURE ADDITION (P3): allow user to select swap/root/home partition sizes. 
 # FUTURE ADDITION (P2): add TPM support. FUTURE ADDITION (P4): migrate to LUKS2
-crypto-partitioner (){ 
+crypto-partitioner(){ 
     clear
     echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
     echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
@@ -223,9 +222,9 @@ crypto-partitioner (){
     echo -e "\e[1;31mWARNING: THE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m "
     echo ""
     read -r -p "RESPONSE: " StartPartitioner < /dev/tty
-    if [[ "$StartPartitioner" == "NO" ]]; then #return to disk selector
+    if [[ "${StartPartitioner}" == "NO" ]]; then #return to disk selector
         select-install-disk
-    elif [[ "$StartPartitioner" == "YES" ]]; then #format selected drive
+    elif [[ "${StartPartitioner}" == "YES" ]]; then #format selected drive
         clear
         echo "Beginning installation..."
         DiskPath="/dev/$1"
@@ -466,7 +465,6 @@ manage-packages (){
 # GENERATES FSTAB
 generate-fstab (){
     echo "Generating FSTab..."
-    arch-chroot /mnt 
     genfstab -U /mnt >> /mnt/etc/fstab
     select-timezone
 }
@@ -531,6 +529,5 @@ echo -e " AN INTERNET CONNECTION IS REQUIRED. Type YES to continue, or anything 
 }
 
 ### INITIAL CLS EXECUTIONS
-set -euo pipefail
 startup-ascii
 initial-user-prompt
