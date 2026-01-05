@@ -1,12 +1,56 @@
-dialog_background=black
-dialog_title=white
-dialog_border=white
-dialog_label=white
-dialog_input=white
-dialog_button=yellow
-dialog_button_active=yellow
-dialog_menu=yellow
-dialog_menu_active=yellow
-dialog_shadow=black
-dialog_gauge=white
-dialog_widget=white
+# Enable colors
+use_colors = ON
+
+# Screen background (main terminal background)
+screen_color = (BLACK, WHITE, OFF)
+
+# Shadow behind dialog boxes
+shadow_color = (BLACK, BLACK, OFF)
+
+# Dialog box main background
+dialog_color = (WHITE, BLACK, OFF)
+
+# Dialog title
+title_color = (RED, BLACK, ON)
+
+# Borders
+border_color = (WHITE, BLACK, OFF)
+border2_color = (WHITE, BLACK, ON)
+
+# Buttons
+button_active_color = (WHITE, RED, ON)
+button_inactive_color = (BLACK, WHITE, OFF)
+button_key_active_color = (YELLOW, BLACK, ON)
+button_key_inactive_color = (WHITE, BLACK, OFF)
+button_label_active_color = (BLACK, RED, ON)
+button_label_inactive_color = (WHITE, BLACK, OFF)
+
+# Input boxes (text entry)
+inputbox_color = (WHITE, BLACK, OFF)
+inputbox_border_color = (WHITE, BLACK, ON)
+
+# Menus
+menubox_color = (WHITE, BLACK, OFF)
+menubox_border_color = (WHITE, BLACK, ON)
+item_color = (WHITE, BLACK, OFF)
+item_selected_color = (BLACK, RED, ON)
+tag_color = (WHITE, BLACK, OFF)
+tag_selected_color = (BLACK, RED, ON)
+tag_key_color = (YELLOW, BLACK, ON)
+tag_key_selected_color = (YELLOW, RED, ON)
+
+# Checklists / Radiolist
+check_color = (WHITE, BLACK, OFF)
+check_selected_color = (BLACK, RED, ON)
+
+# Arrows
+uarrow_color = (WHITE, BLACK, OFF)
+darrow_color = (WHITE, BLACK, OFF)
+
+# Form colors
+form_active_text_color = (WHITE, BLACK, ON)
+form_text_color = (WHITE, BLACK, OFF)
+form_item_readonly_color = (BLACK, WHITE, OFF)
+
+# Gauge / Progress bars
+gauge_color = (WHITE, BLACK, OFF)
