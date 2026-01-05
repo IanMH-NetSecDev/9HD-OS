@@ -55,20 +55,6 @@ start-install (){
     if ! command -v wget &>/dev/null; then
         pacman -Sy --noconfirm wget
     fi
-    set-dialog-theme
-}
-
-set-dialog-theme() {
-    local ThemeURL="https://raw.githubusercontent.com/IanMH-NetSecDev/9HD-OS/refs/heads/main/Assets/DialogTheme"
-    local LocalTheme="/tmp/DialogTheme.rc"
-    if wget -q -O "$LocalTheme" "$ThemeURL"; then
-        export DIALOGRC="$LocalTheme"
-        echo "Dialog theme applied from $ThemeURL"
-    else
-        unset DIALOGRC
-    fi
-    # Enable color codes in dialog text
-    export DIALOG_COLORS="ON"
     check-efi-mode
 }
 
@@ -108,21 +94,19 @@ check-virt-support (){
 # GATHERS INFO TO USE FOR MIRRORLIST, TIMEZONE, AND LOCALE LATER ON
 gather-localization-info() {
     # --- Country selection ---
-    CountryCode=$(dialog --inputbox --colors "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 2>&1 >/dev/tty)
+    CountryCode=$(whiptail --title "Country Selection" --inputbox "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 --stdout)
     while [[ ! "$CountryCode" =~ ^[A-Za-z]{2}$ ]]; do
-        CountryCode=$(dialog --inputbox --colors "Invalid input. Enter a two-letter country code (e.g., US, DE, JP):" 8 40 2>&1 >/dev/tty)
+        CountryCode=$(whiptail --title "Invalid Input" --inputbox "Invalid input. Enter a two-letter country code (e.g., US, DE, JP):" 8 40 --stdout)
     done
     CountryCode="${CountryCode^^}"   # convert to uppercase
-
     # --- Timezone selection ---
-    TimeZone=$(dialog --inputbox --colors "Enter your timezone (Region/City, e.g., America/New_York):" 8 60 2>&1 >/dev/tty)
+    TimeZone=$(whiptail --title "Timezone Selection" --inputbox "Enter your timezone (Region/City, e.g., America/New_York):" 8 60 --stdout)
     while [[ ! -f "/usr/share/zoneinfo/$TimeZone" ]]; do
-        TimeZone=$(dialog --inputbox --colors "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 2>&1 >/dev/tty)
+        TimeZone=$(whiptail --title "Invalid Input" --inputbox "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 --stdout)
     done
-
     # --- Display summary and confirm ---
     while true; do
-        dialog --yesno --colors "Configuration Summary:\n\n Country: $CountryCode\n Timezone: $TimeZone\n\nIs this correct?" 14 50
+        whiptail --title "Confirm Configuration" --yesno "Configuration Summary:\n\n Country: $CountryCode\n Timezone: $TimeZone\n\nIs this correct?" 14 50
         response=$?
         if [[ $response -eq 0 ]]; then
             select-install-disk
@@ -155,7 +139,7 @@ select-install-disk (){
 select-FDE (){ 
     clear
     DiskPath="/dev/$1"
-    if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then #tests for wildcards to prevent directory transversal. returns to disk select if present (probs not needed, leaving for fool-proofing)
+    if [[ $DiskPath == "/dev/" ]] || [[ $DiskPath == "/dev/.." ]] || [[ $DiskPath == "/dev/." ]]; then #tests for wildcards to prevent accidental directory transversal. returns to disk select if present (probs not needed, leaving for fool-proofing)
         echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
         echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
         echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
