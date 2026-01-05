@@ -1,6 +1,25 @@
 #!/bin/bash -i
 
-### GENERIC FUNCTIONS, TO BE USED OFTEN ###
+######################################################
+### VARIABLE DECLARATIONS & INITIAL FUNCTION CALLS ###
+######################################################
+
+InstallerScriptPath="$(realpath "$0")"
+ChrootScriptPath="${ChrootScriptPath:-}"
+if [[ -z "$ChrootScriptPath" ]]; then # derive chroot script path if not explicitly set
+    InstallerBasename="$(basename "$InstallerScriptPath")"
+    Version="${InstallerBasename#9HDOS_installer_}"
+    Version="${Version%_local.sh}"
+    ChrootScriptPath="/mnt/root/9HDOS_chroot_${Version}"
+fi
+ascii-art
+welcome-message
+initial-user-prompt
+
+
+#########################
+### GENERIC FUNCTIONS ###
+#########################
 
 # FLEXIBLE TUI USER PROMPT
 # FUTURE ADDITION (P1): Deprecate this fully
@@ -25,7 +44,10 @@ abort-install (){
     exit
 }
 
-### HIGHLY SPECIFIC FUNCTIONS, TO BE USED ONE-FEW TIMES ###
+
+########################
+### INSTALL SEQUENCE ###
+########################
 
 # INITIAL USER PROMPT & HELPER FUNCTION
 initial-user-prompt (){
@@ -74,17 +96,17 @@ check-virt-support (){
     fi
     if [[ "$VirtOk" == true ]]; then
         echo "System has virtualization support. Proceeding..."
-        gather-localization-info
+        gather-customization-info
     else
         clear
         echo -e "\e[1;31mWARNING: YOUR MACHINE DOES NOT APPEAR TO SUPPORT VIRTUALIZATION. THIS WILL PREVENT MANY CORE FEATURES OF 9HD OS FROM FUNCTIONING. IT IS HIGHLY RECOMMENDED"
         echo -e "TO ABORT AND ENABLE VIRTUALIZATION SUPPORT IN YOUR BIOS IF AVAILABLE. DO YOU WISH TO PROCEED ANYWAYS? Type YES to proceed, or anything else to abort...\e[0m"
-        user-prompt "up-helper-yes" "gather-localization-info" "abort-install"
+        user-prompt "up-helper-yes" "gather-customization-info" "abort-install"
     fi
 }
 
-# GATHERS INFO TO USE FOR MIRRORLIST, TIMEZONE, AND LOCALE LATER ON
-gather-localization-info() {
+# GATHERS INFO TO USE FOR MIRRORLIST, TIMEZONE, LOCALE, ETC, LATER ON
+gather-customization-info() {
     while true; do
         # --- Country selection ---
         CountryCode=$(whiptail --nocancel --title "Country Selection" --inputbox "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 3>&1 1>&2 2>&3)
@@ -472,8 +494,12 @@ begin-system-config (){
     abort-install
 }
 
-# ASCII ART
-startup-ascii (){
+
+###################################
+### ASCII ART & WELCOME MESSAGE ###
+###################################
+
+ascii-art (){
 clear
 echo -e "\e[0;36m                                             ▄     ▄                                              " 
 echo "                                             █     █                                              "
@@ -516,6 +542,9 @@ echo "                                             ▀█████▀        
 echo "                                              █████                                               "
 echo "                                               ███                                                "
 echo -e "                                                █\e[1;36m                                                 "
+}
+
+welcome-message (){
 echo "  __        _______ _     ____ ___  __  __ _____   _____ ___     ___  _   _ ____     ___  ____    "
 echo "  \ \      / / ____| |   / ___/ _ \|  \/  | ____| |_   _/ _ \   / _ \| | | |  _ \   / _ \/ ___|   "
 echo "   \ \ /\ / /|  _| | |  | |  | | | | |\/| |  _|     | || | | | | (_) | |_| | | | | | | | \___ \   "
@@ -525,7 +554,3 @@ echo ""
 echo -e "\e[1;31m ARE YOU SURE YOU WANT TO PROCEED WITH INSTALLATION? THIS WILL CAUSE LARGE CHANGES TO YOUR SYSTEM." 
 echo -e " AN INTERNET CONNECTION IS REQUIRED. Type YES to continue, or anything else to abort...\e[0m "
 }
-
-### INITIAL CLS EXECUTIONS
-startup-ascii
-initial-user-prompt
