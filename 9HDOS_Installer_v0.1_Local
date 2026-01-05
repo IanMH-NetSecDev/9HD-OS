@@ -92,16 +92,16 @@ check-virt-support (){
 gather-localization-info() {
     while true; do
         # --- Country selection ---
-        CountryCode=$(whiptail --title "Country Selection" --inputbox "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 3>&1 1>&2 2>&3)
+        CountryCode=$(whiptail --nocancel --title "Country Selection" --inputbox "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 3>&1 1>&2 2>&3)
         while [[ ! "$CountryCode" =~ ^[A-Za-z]{2}$ ]]; do
-            CountryCode=$(whiptail --title "Invalid Input" --inputbox "Invalid input. Enter a two-letter country code (e.g., US, DE, JP):" 8 40 3>&1 1>&2 2>&3)
+            CountryCode=$(whiptail --nocancel --title "Invalid Input" --inputbox "Invalid input. Enter a two-letter country code (e.g., US, DE, JP):" 8 40 3>&1 1>&2 2>&3)
         done
         CountryCode="${CountryCode^^}"   # convert to uppercase
 
         # --- Timezone selection ---
-        TimeZone=$(whiptail --title "Timezone Selection" --inputbox "Enter your timezone (Region/City, e.g., America/New_York):" 8 60 3>&1 1>&2 2>&3)
+        TimeZone=$(whiptail --nocancel --title "Timezone Selection" --inputbox "Enter your timezone (Region/City, e.g., America/New_York):" 8 60 3>&1 1>&2 2>&3)
         while [[ ! -f "/usr/share/zoneinfo/$TimeZone" ]]; do
-            TimeZone=$(whiptail --title "Invalid Input" --inputbox "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 3>&1 1>&2 2>&3)
+            TimeZone=$(whiptail --nocancel --title "Invalid Input" --inputbox "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 3>&1 1>&2 2>&3)
         done
 
         # --- Display summary and confirm ---
