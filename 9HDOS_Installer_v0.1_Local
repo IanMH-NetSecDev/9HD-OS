@@ -469,7 +469,7 @@ manage-packages (){
 generate-fstab (){
     echo "Generating FSTab..."
     genfstab -U /mnt >> /mnt/etc/fstab
-    select-timezone
+    begin-system-config
 }
 
 # INITIALIZES CHROOT AND 
