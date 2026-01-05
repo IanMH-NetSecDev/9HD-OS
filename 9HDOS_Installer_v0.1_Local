@@ -90,30 +90,33 @@ check-virt-support (){
 
 # GATHERS INFO TO USE FOR MIRRORLIST, TIMEZONE, AND LOCALE LATER ON
 gather-localization-info() {
-    # --- Country selection ---
-    CountryCode=$(whiptail --title "Country Selection" --inputbox "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 --stdout)
-    while [[ ! "$CountryCode" =~ ^[A-Za-z]{2}$ ]]; do
-        CountryCode=$(whiptail --title "Invalid Input" --inputbox "Invalid input. Enter a two-letter country code (e.g., US, DE, JP):" 8 40 --stdout)
-    done
-    CountryCode="${CountryCode^^}"   # convert to uppercase
-    # --- Timezone selection ---
-    TimeZone=$(whiptail --title "Timezone Selection" --inputbox "Enter your timezone (Region/City, e.g., America/New_York):" 8 60 --stdout)
-    while [[ ! -f "/usr/share/zoneinfo/$TimeZone" ]]; do
-        TimeZone=$(whiptail --title "Invalid Input" --inputbox "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 --stdout)
-    done
-    # --- Display summary and confirm ---
     while true; do
-        whiptail --title "Confirm Configuration" --yesno "Configuration Summary:\n\n Country: $CountryCode\n Timezone: $TimeZone\n\nIs this correct?" 14 50
+        # --- Country selection ---
+        CountryCode=$(whiptail --title "Country Selection" --inputbox "Enter your country code (ISO 3166, e.g., US, DE, JP):" 8 40 3>&1 1>&2 2>&3)
+        while [[ ! "$CountryCode" =~ ^[A-Za-z]{2}$ ]]; do
+            CountryCode=$(whiptail --title "Invalid Input" --inputbox "Invalid input. Enter a two-letter country code (e.g., US, DE, JP):" 8 40 3>&1 1>&2 2>&3)
+        done
+        CountryCode="${CountryCode^^}"   # convert to uppercase
+
+        # --- Timezone selection ---
+        TimeZone=$(whiptail --title "Timezone Selection" --inputbox "Enter your timezone (Region/City, e.g., America/New_York):" 8 60 3>&1 1>&2 2>&3)
+        while [[ ! -f "/usr/share/zoneinfo/$TimeZone" ]]; do
+            TimeZone=$(whiptail --title "Invalid Input" --inputbox "Invalid timezone. Enter a valid timezone (e.g., America/New_York):" 8 60 3>&1 1>&2 2>&3)
+        done
+
+        # --- Display summary and confirm ---
+        whiptail --title "Confirm Configuration" --yesno "Configuration Summary:\n\nCountry: $CountryCode\nTimezone: $TimeZone\n\nIs this correct?" 14 50
         response=$?
         if [[ $response -eq 0 ]]; then
             select-install-disk
             break
         else
-            unset CountryCode TimeZone LocaleCode
-            gather-localization-info
+            unset CountryCode TimeZone
+            # Loop restarts automatically
         fi
     done
 }
+
 
 # PROMPTS USER TO SELECT A DISK FOR INSTALLATION
 select-install-disk (){
