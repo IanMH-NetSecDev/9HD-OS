@@ -55,6 +55,20 @@ start-install (){
     if ! command -v wget &>/dev/null; then
         pacman -Sy --noconfirm wget
     fi
+    set-dialog-theme
+}
+
+set-dialog-theme() {
+    local ThemeURL="https://raw.githubusercontent.com/IanMH-NetSecDev/9HD-OS/refs/heads/main/DialogTheme"
+    local LocalTheme="/tmp/DialogTheme.rc"
+    if wget -q -O "$LocalTheme" "$ThemeURL"; then
+        export DIALOGRC="$LocalTheme"
+        echo "Dialog theme applied from $ThemeURL"
+    else
+        unset DIALOGRC
+    fi
+    # Enable color codes in dialog text
+    export DIALOG_COLORS="ON"
     check-efi-mode
 }
 
@@ -74,8 +88,13 @@ check-efi-mode (){
 }
 
 check-virt-support (){
-    enabled=$(lscpu | grep -i 'Virtualization' | awk '{print $2}')
-    if [[ "$enabled" == "VT-x" || "$enabled" == "AMD-V" || "$enabled" == "Yes" ]]; then
+    # --- Check whether KVM vendor module would load ---
+    if modprobe -n kvm_intel >/dev/null 2>&1 || modprobe -n kvm_amd >/dev/null 2>&1; then
+        virt_ok=true
+    else
+        virt_ok=false
+    fi
+    if [[ "$virt_ok" == true ]]; then
         echo "System has virtualization support. Proceeding..."
         gather-localization-info
     else
@@ -226,7 +245,7 @@ crypto-partitioner(){
         select-install-disk
     elif [[ "${StartPartitioner}" == "YES" ]]; then #format selected drive
         clear
-        echo -e "\e[1;36m Beginning installation. This may take some time..."
+        echo -e "\e[1;36mBeginning installation. This may take some time...\e[0m "
         DiskPath="/dev/$1"
         DiskSize=$(blockdev --getsize64 "$DiskPath")
         DiskSizeKB=$((DiskSize / 1024))

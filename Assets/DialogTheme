@@ -1,0 +1,13 @@
+# 9HD Dialog Theme - black/grey/white with yellow/red accents
+dialog_background = black
+dialog_title = white
+dialog_border = white
+dialog_label = white
+dialog_input = white
+dialog_button = yellow
+dialog_button_active = brightyellow
+dialog_menu = yellow
+dialog_menu_active = brightyellow
+dialog_shadow = black
+dialog_gauge = white
+dialog_widget = white
