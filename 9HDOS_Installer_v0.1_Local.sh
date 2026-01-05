@@ -45,13 +45,8 @@ initial-user-prompt-responder (){
 start-install (){
     clear
     echo -e "===\e[1;36m PROCEEDING WITH 9HD-OS INSTALLATION\e[0m ==="
-    echo ""
     echo "Syncing clock..."
     timedatectl set-ntp true
-    echo "Installing dependencies..."
-    if ! command -v wget &>/dev/null; then
-        pacman -Sy --noconfirm wget
-    fi
     check-efi-mode
 }
 
