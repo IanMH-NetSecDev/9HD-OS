@@ -103,7 +103,7 @@ gather-localization-info() {
 
     # --- Display summary and confirm ---
     while true; do
-        dialog --yesno "Configuration Summary:\n\nCountry: $CountryCode\nTimezone: $TimeZone\n\n Is this correct?" 14 50
+        dialog --yesno "Configuration Summary:\n\n Country: $CountryCode\n Timezone: $TimeZone\n\nIs this correct?" 14 50
         response=$?
         if [[ $response -eq 0 ]]; then
             select-install-disk
@@ -226,7 +226,7 @@ crypto-partitioner(){
         select-install-disk
     elif [[ "${StartPartitioner}" == "YES" ]]; then #format selected drive
         clear
-        echo "Beginning installation..."
+        echo -e "\e[1;36m Beginning installation. This may take some time..."
         DiskPath="/dev/$1"
         DiskSize=$(blockdev --getsize64 "$DiskPath")
         DiskSizeKB=$((DiskSize / 1024))
