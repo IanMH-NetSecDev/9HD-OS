@@ -538,10 +538,10 @@ generate-fstab (){
 begin-system-config() {
     # --- Prepare script for chroot ---
     mkdir -p /mnt/tmp
-    cp "$ChrootScriptPath" /mnt/tmp/
-    chmod +x /mnt/tmp/"$(basename "$ChrootScriptPath")"
+    cp "$ChrootScriptPath" /mnt/root/
+    chmod +x /mnt/root/"$(basename "$ChrootScriptPath")"
     # --- chroot executing chroot script ---
-    arch-chroot /mnt /bin/bash /tmp/"$(basename "$ChrootScriptPath")"
+    arch-chroot /mnt /bin/bash /root/"$(basename "$ChrootScriptPath")"
 }
 
 
