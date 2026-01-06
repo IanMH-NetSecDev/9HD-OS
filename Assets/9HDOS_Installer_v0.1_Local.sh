@@ -535,8 +535,13 @@ generate-fstab (){
 }
 
 # INITIALIZES CHROOT & RUNS CHROOT SCRIPT
-begin-system-config (){
-    arch-chroot /mnt "${ChrootScriptPath}"
+begin-system-config() {
+    # --- Prepare script for chroot ---
+    mkdir -p /mnt/tmp
+    cp "$ChrootScriptPath" /mnt/tmp/
+    chmod +x /mnt/tmp/"$(basename "$ChrootScriptPath")"
+    # --- chroot executing chroot script ---
+    arch-chroot /mnt /tmp/"$(basename "$ChrootScriptPath")"
 }
 
 
