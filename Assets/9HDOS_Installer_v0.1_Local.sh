@@ -541,7 +541,7 @@ begin-system-config() {
     cp "$ChrootScriptPath" /mnt/tmp/
     chmod +x /mnt/tmp/"$(basename "$ChrootScriptPath")"
     # --- chroot executing chroot script ---
-    arch-chroot /mnt /tmp/"$(basename "$ChrootScriptPath")"
+    arch-chroot /mnt /bin/bash /tmp/"$(basename "$ChrootScriptPath")"
 }
 
 
@@ -556,7 +556,7 @@ if [[ -z "$ChrootScriptPath" ]]; then # derive chroot script path if not explici
     Version="${InstallerBasename#9HDOS_installer_}"
     Version="${Version%_local.sh}"
     InstallerDir="$(dirname "$InstallerScriptPath")"
-    ChrootScriptPath="$InstallerDir/9HDOS_chroot_${Version}"
+    ChrootScriptPath="$InstallerDir/9HDOS_chroot_${Version}.sh"
 fi
 ascii-art
 welcome-message
