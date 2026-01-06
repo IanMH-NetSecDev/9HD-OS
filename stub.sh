@@ -1,7 +1,7 @@
 #!/bin/bash -i
 
-InstallerScriptPath="/mnt/root/9HDOS_installer_v0.1_local.sh"
-ChrootScriptPath="/mnt/root/9HDOS_chroot_v0.1.sh"
+InstallerScriptPath="/tmp/9HDOS_installer_v0.1_local.sh"
+ChrootScriptPath="/tmp/root/9HDOS_chroot_v0.1.sh"
 
 # CHECK FOR CURL
 if ! command -v curl >/dev/null 2>&1; then
