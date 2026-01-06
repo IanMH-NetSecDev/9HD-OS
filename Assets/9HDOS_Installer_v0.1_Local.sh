@@ -536,7 +536,7 @@ generate-fstab (){
 
 # INITIALIZES CHROOT & RUNS CHROOT SCRIPT
 begin-system-config (){
-    abort-install
+    arch-chroot /mnt "${ChrootScriptPath}"
 }
 
 
