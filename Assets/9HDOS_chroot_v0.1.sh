@@ -15,5 +15,5 @@ abort-install (){
 ######################################################
 
 ChrootScriptPath="$(realpath "$0")"
-Echo "Beginning system config..."
+echo "Beginning system config..."
 abort-install
