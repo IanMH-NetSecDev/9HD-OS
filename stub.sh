@@ -1,5 +1,4 @@
 #!/bin/bash -i
-set -euo pipefail
 
 InstallerScriptPath="/mnt/root/9HDOS_installer_v0.1_local.sh"
 ChrootScriptPath="/mnt/root/9HDOS_chroot_v0.1.sh"
