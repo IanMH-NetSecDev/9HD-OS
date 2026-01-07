@@ -9,9 +9,9 @@ if ! command -v curl >/dev/null 2>&1; then
 fi
 
 # DOWNLOAD INSTALLER AND DEPENDENCIES
-curl -fsSL -o "$InstallerScriptPath" https://raw.githubusercontent.com/Net-Sec-Dev/9HD-OS/refs/heads/prerelease-v0.1/Assets/9HDOS_Installer_v0.1_Local.sh
+curl -fsSL -o "$InstallerScriptPath" https://raw.githubusercontent.com/Net-Sec-Dev/9HD-OS/refs/heads/feature-whiptail/Assets/9HDOS_Installer_v0.1_Local.sh
 chmod +x "$InstallerScriptPath"
-curl -fsSL -o "$ChrootScriptPath" https://raw.githubusercontent.com/Net-Sec-Dev/9HD-OS/refs/heads/prerelease-v0.1/Assets/9HDOS_chroot_v0.1.sh
+curl -fsSL -o "$ChrootScriptPath" https://raw.githubusercontent.com/Net-Sec-Dev/9HD-OS/refs/heads/feature-whiptail/Assets/9HDOS_chroot_v0.1.sh
 chmod +x "$ChrootScriptPath"
 
 # VERIFY CHECKSUMS
