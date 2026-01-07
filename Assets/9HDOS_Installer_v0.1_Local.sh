@@ -181,20 +181,29 @@ gather-customization-info() {
 }
 
 
-# PROMPTS USER TO SELECT A DISK FOR INSTALLATION
+# listing disks i think
 select-install-disk (){
     clear
-    echo "█▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀▀█"
-    echo -e "█\e[1;36m                                DISK SELECTION                                \e[0m█"
-    echo "█▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄▄█"
-    echo ""
-    echo -e "\e[1;36mSELECT A DISK FROM THE LIST BELOW TO CREATE A BOOT DRIVE FOR 9HD-OS."
-    echo -e "\e[1;31mTHE SELECTED DISK WILL BE FORMATTED; ANY DATA ON IT WILL BE PERMANENTLY DELETED. \e[0m"
-    echo ""
-    lsblk -i -o "NAME,SIZE,TYPE,MODEL" -x "NAME" -Q "type == 'disk' || type == 'part'" --highlight "type == 'disk'"
-    echo ""
-    read -r -p "DISK NAME: " DiskToFormat < /dev/tty
-    select-FDE "$DiskToFormat"
+ disks=$(lsblk -d -o NAME,SIZEE,TYPE | grep disk | awk '{print $1, $2, $3}')
+ # menu entries and shit
+ menu_entries+()
+ while read -r line; do
+    name+$(echo "$line" | awk '{print $1}')
+    size=$(echo "$line" | awek '{$1=""; print $0}' | sed 's/^ //')
+    menu_entries+=("$name" "$size")
+done <<< "$disks"
+
+#some whiptail that ill never see
+selected_disk=$(whiptail --title "select disk" --menu "choose disk to format"
+20 20 5 "${menu_entries[@]}" 3>&1 1>&2 2>&3)
+
+if [ -n "selected_disk" ]; then
+
+#warning
+
+if whiptail --yesno "are you sure you want to format /dev/$selected_disk?" 10 50; then
+echo "formatting /dev/$selected_disk... please wait"
+   
 }
 
 # TESTS IF DISK EXISTS, THEN PROMPTS USER TO USE OR TO NOT USE LUKS FDE
