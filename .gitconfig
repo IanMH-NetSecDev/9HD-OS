@@ -1,3 +1,0 @@
-[merge "keep-ours"]
-    name = Keep ours during merge
-    driver = true
