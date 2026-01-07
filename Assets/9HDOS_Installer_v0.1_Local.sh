@@ -204,7 +204,7 @@ if [ -n "selected_disk" ]; then
 if whiptail --yesno "are you sure you want to format /dev/$selected_disk?" 10 50; then
 echo "formatting /dev/$selected_disk... please wait"
    
-}
+
 
 # TESTS IF DISK EXISTS, THEN PROMPTS USER TO USE OR TO NOT USE LUKS FDE
 # FUTURE ADDITION (P4): allow user to change crypto algo
