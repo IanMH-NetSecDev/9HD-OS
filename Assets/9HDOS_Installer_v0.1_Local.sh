@@ -201,7 +201,7 @@ if [ -n "selected_disk" ]; then
 
 #warning
 
-if whiptail --yesno "are you sure you want to format /dev/$selected_disk?" 10 50; then
+whiptail --yesno "are you sure you want to format /dev/$selected_disk?" 10 50; then
 echo "formatting /dev/$selected_disk... please wait"
    
 
