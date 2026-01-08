@@ -204,7 +204,7 @@ if [ -n "selected_disk" ]; then
 if (whiptail --yesno "are you sure you want to format /dev/$selected_disk?" 10 50); then
 echo "formatting /dev/$selected_disk... please wait"
 sudo mkfs ext4 /dev/$selected_disk;
-
+fi
 
    
 
