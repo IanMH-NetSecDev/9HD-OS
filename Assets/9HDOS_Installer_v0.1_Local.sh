@@ -197,8 +197,6 @@ done <<< "$disks"
 selected_disk=$(whiptail --title "select disk" --menu "choose disk to format"
 20 20 5 "${menu_entries[@]}" 3>&1 1>&2 2>&3)
 
-if [ -n "selected_disk" ]; then
-
 #warning
 
 if (whiptail --yesno "are you sure you want to format /dev/$selected_disk?" 10 50); then
