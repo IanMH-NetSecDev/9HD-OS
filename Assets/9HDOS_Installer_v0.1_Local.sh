@@ -181,10 +181,12 @@ gather-customization-info() {
 }
 
 
-# listing disks i think
-select-install-disk ()
+#revision 70
+select-install-disk() {
+  disks=$(lsblk -d -o NAME,SIZE,TYPE | grep disk | awk '{print $1,$2,$3}')
+}
+```
 
- disks=$(lsblk -d -o NAME,SIZE,TYPE | grep disk | awk '{print $1,$2,$3}')
  # menu entries and shit
  menu_entries+()
  while read -r line; do
