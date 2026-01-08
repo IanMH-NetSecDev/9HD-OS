@@ -187,12 +187,13 @@ select-install-disk() {
 }
 
  # menu entries and shit
- menu_entries+()
+ menu_entries() {
  while read -r line; do
     name+$(echo "$line" | awk '{print $1}')
     size=$(echo "$line" | awk '{$1=""; print $0}' | sed 's/^ //')
     menu_entries+=("$name" "$size")
 done <<< "$disks"
+ }
 
 #some whiptail that ill never see
 selected_disk=$(whiptail --title "select disk" --menu "choose disk to format"
